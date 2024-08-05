@@ -55,7 +55,7 @@
 
 (deftest test-rotate-left
   (let [t (Treap. 1 :a 42 nil nil)
-        r (treap/rotate-left t)
+        r (treap/-rotate-left t)
         tgt (.L r)]
     (are [x y] (= x y)
          (.p r) -1
@@ -67,11 +67,11 @@
          (.L tgt) nil
          (.R tgt) nil
          (.R r) nil))
-  (check-left-rotation a-treap (treap/rotate-left a-treap)))
+  (check-left-rotation a-treap (treap/-rotate-left a-treap)))
 
 (deftest test-rotate-right
   (let [t (Treap. 1 :a 42 nil nil)
-        r (treap/rotate-right t)
+        r (treap/-rotate-right t)
         tgt (.R r)]
     (are [x y] (= x y)
          (.p r) -1
@@ -83,20 +83,20 @@
          (.R tgt) nil
          (.L tgt) nil
          (.L r) nil))
-  (check-right-rotation a-treap (treap/rotate-right a-treap)))
+  (check-right-rotation a-treap (treap/-rotate-right a-treap)))
 
 (deftest test-nil
   (are [x y] (= x y)
-       -1  (treap/priority nil)
-       nil (treap/rotate nil)
-       nil (treap/rotate-right nil)
-       nil (treap/rotate-left  nil)
-       nil (treap/find nil 0)
-       nil (treap/insert nil 0)
-       nil (treap/delete nil 0)
-       nil (treap/uproot nil)))
+       -1  (treap/-priority nil)
+       nil (treap/-rotate nil)
+       nil (treap/-rotate-right nil)
+       nil (treap/-rotate-left  nil)
+       nil (treap/-find nil 0)
+       nil (treap/-insert nil 0)
+       nil (treap/-delete nil 0)
+       nil (treap/-uproot nil)))
 
 (deftest test-priority
   (are [x y] (= x y)
-       42 (treap/priority (Treap. 42 nil nil nil nil))))
+       42 (treap/-priority (Treap. 42 nil nil nil nil))))
 
