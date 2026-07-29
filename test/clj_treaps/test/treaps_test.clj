@@ -92,7 +92,7 @@
        nil (treap/-rotate-right nil)
        nil (treap/-rotate-left  nil)
        nil (treap/-find nil 0)
-       nil (treap/-insert nil 0)
+;;       nil (treap/-insert nil 0 1 2)
        nil (treap/-delete nil 0)
        nil (treap/-uproot nil)))
 

@@ -1,5 +1,7 @@
 (ns fogus.treaps)
 
+(set! *warn-on-reflection* true)
+
 ;; PROTOCOLS
 
 (defprotocol RestructuringProtocol
@@ -14,8 +16,56 @@
   (-find [this v]))
 
 (defprotocol ModificationProtocol
-  (-update [this f v])
-  (-insert [this v])
+  (-update [this k v])
+  (-insert [this p k v])
+  (-delete [this k])
+  (-uproot [this]))
+
+(deftype Treap [p k v L R]
+  PriorityProtocol
+  (-priority [_] p)
+  RestructuringProtocol
+  (-rotate-left [_]
+    (let [^Treap new-l (if R R (Treap. -1 nil nil nil nil))]
+      (Treap. (.p new-l)
+              (.k new-l)
+              (.v new-l)
+              (Treap. p k v L (.L new-l))
+              (.R new-l))))
+  (-rotate-right [_]
+    (let [^Treap new-r (if L L (Treap. -1 nil nil nil nil))]
+      (Treap. (.p new-r)
+              (.k new-r)
+              (.v new-r)
+              (.L new-r)
+              (Treap. p k v (.R new-r) R))))
+  (-rotate [this]
+    (cond
+     (< p (.p ^Treap L)) (-rotate-right this)
+     (< p (.p ^Treap R)) (-rotate-left this)
+     :else this))
+  FindProtocol
+  (-find [this key]
+    (cond
+     (< key k) (-find L key)
+     (> key k) (-find R key)
+     :else v))
+  ModificationProtocol
+  (-update [this key val]
+    (cond
+      (< key k) (Treap. p k v (-update L key val) R)
+      (> key k) (Treap. p k v L (-update R key val))
+      :else (Treap. p k val L R)))
+  (-insert [this pri key val]
+    (< key k) (let [trp (Treap. p k v (-insert L pri key val) R)]
+                (if (> (.p ^Treap L) (.p trp))
+                  (-rotate-right trp)
+                  trp))
+    (> key k) (let [trp (Treap. p k v L (-insert R pri key val))]
+                (if (> (.p ^Treap R) (.p trp))
+                  (-rotate-left trp)
+                  trp))
+    :else this)
   (-delete [this k])
   (-uproot [this]))
 
@@ -32,55 +82,16 @@
   (-find [_ _] nil)
   
   ModificationProtocol
-  (-update [_ k v] nil)
-  (-insert [_ _] nil)
+  (-update [_ _ _] nil)
+  (-insert [_ p k v] (Treap. p k v nil nil))
   (-delete [_ _] nil)
   (-uproot [_] nil))
-
-(deftype Treap [p k v L R]
-  PriorityProtocol
-  (-priority [_] p)
-  RestructuringProtocol
-  (-rotate-left [_]
-    (let [new-l (if R R (Treap. -1 nil nil nil nil))]
-      (Treap. (.p new-l)
-              (.k new-l)
-              (.v new-l)
-              (Treap. p k v L (.L new-l))
-              (.R new-l))))
-  (-rotate-right [_]
-    (let [new-r (if L L (Treap. -1 nil nil nil nil))]
-      (Treap. (.p new-r)
-              (.k new-r)
-              (.v new-r)
-              (.L new-r)
-              (Treap. p k v (.R new-r) R))))
-  (-rotate [this]
-    (cond
-     (< p (.p L)) (-rotate-right this)
-     (< p (.p R)) (-rotate-left this)
-     :else this))
-  FindProtocol
-  (-find [this key]
-    (cond
-     (< key k) (-find L key)
-     (> key k) (-find R key)
-     :else v))
-  ModificationProtocol
-  (-update [this k v]
-    (cond
-      (< key k) (Treap. p k v (-update k v L) R)
-      (> key k) 
-      :else ))
-  (-insert [this v])
-  (-delete [this k])
-  (-uproot [this]))
 
 (defn treap [& elems]
   (Treap. 0 :a 1 nil nil))
 
 (defmethod print-method Treap
-  [t w]
+  [^Treap t ^java.io.Writer w]
   (.write w (str "#T{"))  (print-method (.p t) w)
   (.write w (str " ("))   (print-method (.k t) w)
   (.write w (str " => ")) (print-method (.v t) w)
