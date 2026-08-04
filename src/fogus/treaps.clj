@@ -59,11 +59,11 @@
   (-insert [this pri key val]
     (cond
       (< key k) (let [trp (Treap. p k v (-insert L pri key val) R)]
-                  (if (> (.p ^Treap L) (.p trp))
+                  (if (> (-priority (.L ^Treap trp)) (.p ^Treap trp))
                     (-rotate-right trp)
                     trp))
       (> key k) (let [trp (Treap. p k v L (-insert R pri key val))]
-                  (if (> (.p ^Treap R) (.p trp))
+                  (if (> (-priority (.R ^Treap trp)) (.p ^Treap trp))
                     (-rotate-left trp)
                     trp))
       :else this))
