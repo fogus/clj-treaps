@@ -41,9 +41,9 @@
               (Treap. p k v (.R new-r) R))))
   (-rotate [this]
     (cond
-     (< p (.p ^Treap L)) (-rotate-right this)
-     (< p (.p ^Treap R)) (-rotate-left this)
-     :else this))
+      (< p (-priority L)) (-rotate-right this)
+      (< p (-priority R)) (-rotate-left this)
+      :else this))
   FindProtocol
   (-find [this key]
     (cond
