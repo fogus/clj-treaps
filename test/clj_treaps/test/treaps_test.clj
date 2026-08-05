@@ -1,6 +1,6 @@
 (ns clj-treaps.test.treaps-test
   (:require [fogus.treaps :as treap])
-  (:use [clojure.test :only (deftest are)])
+  (:use clojure.test)
   (:import [fogus.treaps Treap]))
 
 (defn ^:private check-left-rotation
@@ -92,11 +92,41 @@
        nil (treap/-rotate-right nil)
        nil (treap/-rotate-left  nil)
        nil (treap/-find nil 0)
-;;       nil (treap/-insert nil 0 1 2)
        nil (treap/-delete nil 0)
        nil (treap/-uproot nil)))
 
-(deftest test-priority
-  (are [x y] (= x y)
-       42 (treap/-priority (Treap. 42 nil nil nil nil))))
+(defn- order-priorites [t]
+  (#'fogus.treaps/walk #(.p ^Treap %) identity t))
+
+(deftest test-treap-construction
+  (let [t5 (treap/treap 1 2 3 4 5)]
+    (is (= 5 (count (seq t5))))
+    (is (= #{1 2 3 4 5} (set (seq t5)))))
+  (let [t6 (treap/treap :a 1 :b 2 :c 3)]
+    (is (= 6 (count (seq t6)))))
+  (let [ks [10 3 7 1 9 4 6 2 8 5]
+        t1 (apply treap/treap ks)
+        t2 (apply treap/treap ks)]
+    (is (not= (order-priorites t1) (order-priorites t2))))
+  (let [ks [10 3 7 1 9 4 6 2 8 5]
+        h1 (apply treap/treap-with hash ks)
+        h2 (apply treap/treap-with hash ks)]
+    (is (= 3 (treap/-find h1 3)))
+    (is (= (order-priorites h1) (order-priorites h2))))
+  (testing "that hash collision handled properly"
+    (let [a (reify Object
+              (hashCode [_] 42)
+              (equals [this o] (identical? this o))
+              (toString [_] "a"))
+          b (reify Object
+              (hashCode [_] 42)
+              (equals [this o] (identical? this o))
+              (toString [_] "b"))
+          t (-> nil
+                (treap/-insert 1 a :a)
+                (treap/-insert 2 b :b))]
+      (is (= 2 (count (seq t))))
+      (is (= :a (treap/-find t a)))
+      (is (= :b (treap/-find t b))))))
+
 

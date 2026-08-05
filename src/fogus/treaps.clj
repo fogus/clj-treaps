@@ -1,4 +1,5 @@
-(ns fogus.treaps)
+(ns fogus.treaps
+  (:refer-clojure :exclude [compare]))
 
 (set! *warn-on-reflection* true)
 
@@ -20,6 +21,15 @@
   (-insert [this p k v])
   (-delete [this k])
   (-uproot [this]))
+
+(declare walk)
+
+(defn- compare [key k]
+  (let [c (clojure.core/compare (hash key) (hash k))]
+    (cond
+      (not (zero? c)) c
+      (= key k) 0
+      :else (clojure.core/compare (System/identityHashCode key) (System/identityHashCode k)))))
 
 (deftype Treap [p k v L R]
   PriorityProtocol
@@ -46,29 +56,42 @@
       :else this))
   FindProtocol
   (-find [this key]
-    (cond
-     (< key k) (-find L key)
-     (> key k) (-find R key)
-     :else v))
+    (let [c (compare key k)]
+      (cond
+        (neg? c) (-find L key)
+        (pos? c) (-find R key)
+        :else v)))
   ModificationProtocol
   (-update [this key val]
-    (cond
-      (< key k) (Treap. p k v (-update L key val) R)
-      (> key k) (Treap. p k v L (-update R key val))
-      :else (Treap. p k val L R)))
+    (let [c (compare key k)]
+      (cond
+        (neg? c) (Treap. p k v (-update L key val) R)
+        (pos? c) (Treap. p k v L (-update R key val))
+        :else (Treap. p k val L R))))
   (-insert [this pri key val]
-    (cond
-      (< key k) (let [trp (Treap. p k v (-insert L pri key val) R)]
-                  (if (> (-priority (.L ^Treap trp)) (.p ^Treap trp))
-                    (-rotate-right trp)
-                    trp))
-      (> key k) (let [trp (Treap. p k v L (-insert R pri key val))]
-                  (if (> (-priority (.R ^Treap trp)) (.p ^Treap trp))
-                    (-rotate-left trp)
-                    trp))
-      :else this))
+    (let [c (compare key k)]
+      (cond
+        (neg? c) (let [trp (Treap. p k v (-insert L pri key val) R)]
+                    (if (> (-priority (.L ^Treap trp)) (.p ^Treap trp))
+                      (-rotate-right trp)
+                      trp))
+        (pos? c) (let [trp (Treap. p k v L (-insert R pri key val))]
+                    (if (> (-priority (.R ^Treap trp)) (.p ^Treap trp))
+                      (-rotate-left trp)
+                      trp))
+        :else this)))
   (-delete [this k])
-  (-uproot [this]))
+  (-uproot [this])
+
+  clojure.lang.Seqable
+  (seq [this]
+    (walk (fn [^Treap t] (.k t)) seq this)))
+
+(defn- walk [elem-fn build-fn trp]
+  (letfn [(visit [^Treap t]
+            (when-not (nil? t)
+              (concat (visit (.L t)) [(elem-fn t)] (visit (.R t)))))]
+    (build-fn (visit trp))))
 
 (extend-type nil
   PriorityProtocol
@@ -88,8 +111,17 @@
   (-delete [_ _] nil)
   (-uproot [_] nil))
 
-(defn treap [& elems]
-  (Treap. 0 :a 1 nil nil))
+(defn treap-with
+  ""
+  [priority-fn & elems]
+  (reduce (fn [t k] (-insert t (priority-fn k) k k))
+          nil
+          elems))
+
+(defn treap
+  "Builds a Treap from elems using a random-priority policy."
+  [& elems]
+  (apply treap-with #(do % (rand-int Integer/MAX_VALUE)) elems))
 
 (defmethod print-method Treap
   [^Treap t ^java.io.Writer w]
