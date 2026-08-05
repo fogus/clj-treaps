@@ -109,8 +109,8 @@
         t2 (apply treap/treap ks)]
     (is (not= (order-priorites t1) (order-priorites t2))))
   (let [ks [10 3 7 1 9 4 6 2 8 5]
-        h1 (apply treap/treap-with hash ks)
-        h2 (apply treap/treap-with hash ks)]
+        h1 (apply treap/treap-with-priority-fn hash ks)
+        h2 (apply treap/treap-with-priority-fn hash ks)]
     (is (= 3 (treap/-find h1 3)))
     (is (= (order-priorites h1) (order-priorites h2))))
   (testing "that hash collision handled properly"
