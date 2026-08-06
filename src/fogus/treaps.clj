@@ -80,11 +80,13 @@
                       trp))
         :else this)))
   (-delete [this key]
-    (let [result (delete-node this key)]
-      (if (nil? result) EMPTY result)))
+    (if-let [result (delete-node this key)]
+      result
+      EMPTY))
   (-uproot [this]
-    (let [result (uproot-node this)]
-      (if (nil? result) EMPTY result)))
+    (if-let [result (uproot-node this)]
+      result
+      EMPTY))
 
   clojure.lang.Seqable
   (seq [this]
