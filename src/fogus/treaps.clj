@@ -2,7 +2,7 @@
 
 (set! *warn-on-reflection* true)
 
-(declare walk)
+(declare walk delete-node uproot-node random-priority EMPTY)
 
 (defprotocol RestructuringProtocol
   (-rotate-right [this])
@@ -79,8 +79,12 @@
                       (-rotate-left trp)
                       trp))
         :else this)))
-  (-delete [this k]) ;; TODO
-  (-uproot [this]) ;; TODO
+  (-delete [this key]
+    (let [result (delete-node this key)]
+      (if (nil? result) EMPTY result)))
+  (-uproot [this]
+    (let [result (uproot-node this)]
+      (if (nil? result) EMPTY result)))
 
   clojure.lang.Seqable
   (seq [this]
@@ -94,7 +98,7 @@
   clojure.lang.IPersistentCollection
   (cons [this obj]
     (-insert this p obj obj))
-  (empty [_])  ;; TODO
+  (empty [_] EMPTY)
   (equiv [this other]) ;; TODO
 
   clojure.lang.IPersistentSet
@@ -154,6 +158,94 @@
   (-delete [_ _] nil)
   (-uproot [_] nil))
 
+(defn- delete-node
+  [^Treap t key]
+  (when-not (nil? t)
+    (let [c (kompare key (.k t))]
+      (cond
+        (neg? c) (Treap. (.p t) (.k t) (.v t) (delete-node (.L t) key) (.R t))
+        (pos? c) (Treap. (.p t) (.k t) (.v t) (.L t) (delete-node (.R t) key))
+        :else (uproot-node t)))))
+
+(defn- uproot-node
+  [^Treap t]
+  (cond
+    (nil? t) nil
+    (and (nil? (.L t)) (nil? (.R t))) nil
+    (> (-priority (.L t)) (-priority (.R t)))
+    (let [^Treap rotated (-rotate-right t)]
+      (Treap. (.p rotated) (.k rotated) (.v rotated)
+              (.L rotated)
+              (uproot-node (.R rotated))))
+    :else
+    (let [^Treap rotated (-rotate-left t)]
+      (Treap. (.p rotated) (.k rotated) (.v rotated)
+              (uproot-node (.L rotated))
+              (.R rotated)))))
+
+(deftype EmptyTreap []
+  PriorityProtocol
+  (-priority [_] -1)
+
+  RestructuringProtocol
+  (-rotate-right [this] this)
+  (-rotate-left [this] this)
+  (-rotate [this] this)
+
+  FindProtocol
+  (-find [_ _] nil)
+
+  ModificationProtocol
+  (-update [this _ _] this)
+  (-insert [_ p k v] (Treap. p k v nil nil))
+  (-delete [this _] this)
+  (-uproot [this] this)
+
+  clojure.lang.Seqable
+  (seq [_] nil)
+
+  java.lang.Object
+  (equals [this other] (clojure.lang.APersistentSet/setEquals other this))
+  (hashCode [_] 0)
+
+  clojure.lang.IPersistentCollection
+  (cons [this obj] (-insert this (random-priority obj) obj obj))
+  (empty [this] this)
+  (equiv [this other] (.equals this other))
+
+  clojure.lang.IPersistentSet
+  (disjoin [this _] this)
+  (get [this _] nil)
+
+  clojure.lang.Counted
+  (count [_] 0)
+
+  clojure.lang.IFn
+  (invoke [this _] nil)
+  (invoke [this key not-found] not-found)
+
+  java.util.Set
+  (add [_ _] (throw (UnsupportedOperationException.)))
+  (addAll [_ _] (throw (UnsupportedOperationException.)))
+  (clear [_] (throw (UnsupportedOperationException.)))
+  (remove [_ _] (throw (UnsupportedOperationException.)))
+  (removeAll [_ _] (throw (UnsupportedOperationException.)))
+  (retainAll [_ _] (throw (UnsupportedOperationException.)))
+  (contains [_ _] false)
+  (containsAll [_ coll] false)
+  (isEmpty [_] true)
+  (size [_] 0)
+  (toArray [_] (into-array Object []))
+  (^objects toArray [_ ^objects arr] arr)
+
+  java.lang.Iterable
+  (iterator [_] (clojure.lang.SeqIterator. nil))
+
+  clojure.lang.IHashEq
+  (hasheq [_] (clojure.lang.Murmur3/hashUnordered nil)))
+
+(def ^:private EMPTY (EmptyTreap.))
+
 (defn- walk [elem-fn build-fn trp]
   (letfn [(visit [^Treap t]
             (when-not (nil? t)
@@ -167,7 +259,7 @@
   ""
   [priority-fn & elems]
   (reduce (fn [t k] (-insert t (priority-fn k) k k))
-          nil
+          EMPTY
           elems))
 
 (defn treap
@@ -184,6 +276,10 @@
   (.write w (str " "))   (print-method (.L t) w)
   (.write w (str " "))   (print-method (.R t) w)
   (.write w "}"))
+
+(defmethod print-method EmptyTreap
+  [_ ^java.io.Writer w]
+  (.write w "#T{}"))
 
 (comment
 

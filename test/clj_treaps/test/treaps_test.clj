@@ -129,4 +129,30 @@
       (is (= :a (treap/-find t a)))
       (is (= :b (treap/-find t b))))))
 
+(deftest test-delete
+  (testing "delete-then-find returns nil"
+    (let [t0 (treap/treap 1 2 3 4 5)
+          t1 (treap/-delete t0 3)]
+      (is (nil? (treap/-find t1 3)))
+      (is (= #{1 2 4 5} (set (seq t1))))))
+
+  (testing "deleting each key of a small treap in turn leaves the rest intact"
+    (let [ks [10 3 7 1 9 4 6 2 8 5]
+          t0 (apply treap/treap ks)]
+      (doseq [k ks]
+        (let [t1 (treap/-delete t0 k)]
+          (is (nil? (treap/-find t1 k)))
+          (is (= (disj (set ks) k) (set (seq t1))))))))
+
+  (testing "deleting an absent key is a no-op"
+    (let [t0 (treap/treap 1 2 3)
+          t1 (treap/-delete t0 999)]
+      (is (= (set (seq t0)) (set (seq t1))))
+      (is (= (order-priorites t0) (order-priorites t1)))))
+
+  (testing "inserting then deleting every key of a randomized tree empties it"
+    (let [elems (shuffle (range 50))
+          t (apply treap/treap elems)
+          emptied (reduce (fn [acc k] (treap/-delete acc k)) t (shuffle elems))]
+      (is (nil? (seq emptied))))))
 
