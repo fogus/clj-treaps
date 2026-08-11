@@ -2,7 +2,7 @@
 
 (set! *warn-on-reflection* true)
 
-(declare walk delete-node uproot-node random-priority EMPTY)
+(declare walk delete-impl uproot-impl split-impl random-priority EMPTY empty-treap?)
 
 (defprotocol RestructuringProtocol
   (-rotate-right [this])
@@ -20,6 +20,13 @@
   (-insert [this p k v])
   (-delete [this k])
   (-uproot [this]))
+
+(defprotocol PersistentTreap
+  (-split [this key])
+  (-join [this other])
+  (-union [this other])
+  (-intersect [this other])
+  (-diff [this other]))
 
 (defn- kompare [l r]
   (let [c (clojure.core/compare (hash l) (hash r))]
@@ -80,14 +87,28 @@
                       trp))
         :else this)))
   (-delete [this key]
-    (if-let [result (delete-node this key)]
+    (if-let [result (delete-impl this key)]
       result
       EMPTY))
   (-uproot [this]
-    (if-let [result (uproot-node this)]
+    (if-let [result (uproot-impl this)]
       result
       EMPTY))
 
+  PersistentTreap
+  (-split [this key]
+    (split-impl this key))
+  (-join [this other]
+    (cond
+      (empty-treap? other) this
+      (> p (-priority other)) (Treap. p k v L (-join R other))
+      :else
+      (let [^Treap o other]
+        (Treap. (.p o) (.k o) (.v o) (-join this (.L o)) (.R o)))))
+  (-union [this other]) ;; TODO
+  (-intersect [this other]) ;; TODO
+  (-diff [this other]) ;; TODO
+  
   clojure.lang.Seqable
   (seq [this]
     (walk (fn [^Treap t] (.k t)) seq this))
@@ -95,16 +116,25 @@
   java.lang.Object
   (equals [this other]
     (clojure.lang.APersistentSet/setEquals other this))
-  (hashCode [_]) ;; TODO
+  ;; TODO cache (with mutable field?)
+  (hashCode [this]
+    (clojure.lang.Murmur3/hashUnordered this))
   
   clojure.lang.IPersistentCollection
   (cons [this obj]
     (-insert this p obj obj))
   (empty [_] EMPTY)
-  (equiv [this other]) ;; TODO
+  (equiv [this other]
+    (cond
+      (or (instance? clojure.lang.IPersistentSet other) (instance? java.util.Set other))
+      (and (= (count this) (count other))
+           (every? #(.contains ^java.util.Set other %) (seq this)))
+      :else false))
 
   clojure.lang.IPersistentSet
-  (disjoin [_ key]) ;; TODO
+  (disjoin [this key]
+    (let [[L _ R] (-split this key)]
+      (-join L R)))
   (get [this key]
     (-find this key))
   
@@ -158,18 +188,25 @@
   (-update [_ _ _] nil)
   (-insert [_ p k v] (Treap. p k v nil nil))
   (-delete [_ _] nil)
-  (-uproot [_] nil))
+  (-uproot [_] nil)
 
-(defn- delete-node
+  PersistentTreap
+  (-split [_ _] [nil nil nil])
+  (-join [_ other] other)
+  (-union [_ other] other)
+  (-intersect [_ other] other)
+  (-diff [_ other] other))
+
+(defn- delete-impl
   [^Treap t key]
   (when-not (nil? t)
     (let [c (kompare key (.k t))]
       (cond
-        (neg? c) (Treap. (.p t) (.k t) (.v t) (delete-node (.L t) key) (.R t))
-        (pos? c) (Treap. (.p t) (.k t) (.v t) (.L t) (delete-node (.R t) key))
-        :else (uproot-node t)))))
+        (neg? c) (Treap. (.p t) (.k t) (.v t) (delete-impl (.L t) key) (.R t))
+        (pos? c) (Treap. (.p t) (.k t) (.v t) (.L t) (delete-impl (.R t) key))
+        :else (uproot-impl t)))))
 
-(defn- uproot-node
+(defn- uproot-impl
   [^Treap t]
   (cond
     (nil? t) nil
@@ -178,12 +215,30 @@
     (let [^Treap rotated (-rotate-right t)]
       (Treap. (.p rotated) (.k rotated) (.v rotated)
               (.L rotated)
-              (uproot-node (.R rotated))))
+              (uproot-impl (.R rotated))))
     :else
     (let [^Treap rotated (-rotate-left t)]
       (Treap. (.p rotated) (.k rotated) (.v rotated)
-              (uproot-node (.L rotated))
+              (uproot-impl (.L rotated))
               (.R rotated)))))
+
+(defn- split-impl
+  "Top-down split of node by key. Returns a triple [less eq gtr] of:
+    less - node whose keys are all < key
+    eq   - the node keyed `key`, or nil if absent
+    gtr  - node whose keys are all > key"
+  [^Treap node key]
+  (if (nil? node)
+    [nil nil nil]
+    (let [c (kompare (.k node) key)]
+      (cond
+        (neg? c) (let [[l eq g] (split-impl (.R node) key)]
+                   [(Treap. (.p node) (.k node) (.v node) (.L node) l) eq g])
+
+        (pos? c) (let [[l eq g] (split-impl (.L node) key)]
+                   [l eq (Treap. (.p node) (.k node) (.v node) g (.R node))])
+
+        :else [(.L node) (Treap. (.p node) (.k node) (.v node) nil nil) (.R node)]))))
 
 (deftype EmptyTreap []
   PriorityProtocol
@@ -203,6 +258,13 @@
   (-delete [this _] this)
   (-uproot [this] this)
 
+  PersistentTreap
+  (-split [this _] [this nil this])
+  (-join [_ other] other)
+  (-union [this other]) ;; TODO
+  (-intersect [this other]) ;; TODO
+  (-diff [this other]) ;; TODO
+  
   clojure.lang.Seqable
   (seq [_] nil)
 
@@ -247,6 +309,9 @@
   (hasheq [_] (clojure.lang.Murmur3/hashUnordered nil)))
 
 (def ^:private EMPTY (EmptyTreap.))
+
+(defn- empty-treap? [t]
+  (or (nil? t) (instance? EmptyTreap t)))
 
 (defn- walk [elem-fn build-fn trp]
   (letfn [(visit [^Treap t]

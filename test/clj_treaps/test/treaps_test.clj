@@ -3,46 +3,47 @@
   (:use clojure.test)
   (:import [fogus.treaps Treap]))
 
+(set! *warn-on-reflection* true)
+
 (defn ^:private check-left-rotation
-  [orig rotated]
+  [^Treap orig ^Treap rotated]
   (are [x y] (= x y)
        ;; the treap in orig's R is now the root       
-       (.p rotated) (.p (.R orig))
-       (.k rotated) (.k (.R orig))
-       (.v rotated) (.v (.R orig))
+       (.p rotated) (.p ^Treap (.R orig))
+       (.k rotated) (.k ^Treap (.R orig))
+       (.v rotated) (.v ^Treap (.R orig))
        ;; orig is in the L of rotated       
-       (.p orig)    (.p (.L rotated))
-       (.k orig)    (.k (.L rotated))
-       (.v orig)    (.v (.L rotated))
+       (.p orig)    (.p ^Treap (.L rotated))
+       (.k orig)    (.k ^Treap (.L rotated))
+       (.v orig)    (.v ^Treap (.L rotated))
        ;; rotated's R is it's old R       
-       (.p (.R rotated)) (.p (.R (.R orig)))
-       (.k (.R rotated)) (.k (.R (.R orig)))
-       (.v (.R rotated)) (.v (.R (.R orig)))
+       (.p ^Treap (.R rotated)) (.p ^Treap (.R ^Treap (.R orig)))
+       (.k ^Treap (.R rotated)) (.k ^Treap (.R ^Treap (.R orig)))
+       (.v ^Treap (.R rotated)) (.v ^Treap (.R ^Treap (.R orig)))
        ;; rotated embedded orig's R is orig's old R's L
-       (.p (.R (.L rotated))) (.p (.L (.R orig)))
-       (.k (.R (.L rotated))) (.k (.L (.R orig)))
-       (.v (.R (.L rotated))) (.v (.L (.R orig)))))
+       (.p ^Treap (.R ^Treap (.L rotated))) (.p ^Treap (.L ^Treap (.R orig)))
+       (.k ^Treap (.R ^Treap (.L rotated))) (.k ^Treap (.L ^Treap (.R orig)))
+       (.v ^Treap (.R ^Treap (.L rotated))) (.v ^Treap (.L ^Treap (.R orig)))))
 
 (defn ^:private check-right-rotation
-  [orig rotated]
+  [^Treap orig ^Treap rotated]
   (are [x y] (= x y)
        ;; the treap in orig's L is now the root
-       (.p rotated) (.p (.L orig))
-       (.k rotated) (.k (.L orig))
-       (.v rotated) (.v (.L orig))
+       (.p rotated) (.p ^Treap (.L orig))
+       (.k rotated) (.k ^Treap (.L orig))
+       (.v rotated) (.v ^Treap (.L orig))
        ;; orig is in the R of rotated
-       (.p orig)    (.p (.R rotated))
-       (.k orig)    (.k (.R rotated))
-       (.v orig)    (.v (.R rotated))
+       (.p orig)    (.p ^Treap (.R rotated))
+       (.k orig)    (.k ^Treap (.R rotated))
+       (.v orig)    (.v ^Treap (.R rotated))
        ;; rotated's L is it's old L
-       (.p (.L rotated)) (.p (.L (.L orig)))
-       (.k (.L rotated)) (.k (.L (.L orig)))
-       (.v (.L rotated)) (.v (.L (.L orig)))
+       (.p ^Treap (.L rotated)) (.p ^Treap (.L ^Treap (.L orig)))
+       (.k ^Treap (.L rotated)) (.k ^Treap (.L ^Treap (.L orig)))
+       (.v ^Treap (.L rotated)) (.v ^Treap (.L ^Treap (.L orig)))
        ;; rotated embedded orig's R is orig's old R's L
-       (.p (.L (.R rotated))) (.p (.R (.L orig)))
-       (.k (.L (.R rotated))) (.k (.R (.L orig)))
-       (.v (.L (.R rotated))) (.v (.R (.L orig)))
-       ))
+       (.p ^Treap (.L ^Treap (.R rotated))) (.p ^Treap (.R ^Treap (.L orig)))
+       (.k ^Treap (.L ^Treap (.R rotated))) (.k ^Treap (.R ^Treap (.L orig)))
+       (.v ^Treap (.L ^Treap (.R rotated))) (.v ^Treap (.R ^Treap (.L orig)))))
 
 (def ^:private a-treap
   (Treap. 1 :a 0 
@@ -54,9 +55,9 @@
                   (Treap. 7 :g 144 nil nil))))
 
 (deftest test-rotate-left
-  (let [t (Treap. 1 :a 42 nil nil)
-        r (treap/-rotate-left t)
-        tgt (.L r)]
+  (let [^Treap t (Treap. 1 :a 42 nil nil)
+        ^Treap r (treap/-rotate-left t)
+        ^Treap tgt (.L r)]
     (are [x y] (= x y)
          (.p r) -1
          (.k r) nil
@@ -70,9 +71,9 @@
   (check-left-rotation a-treap (treap/-rotate-left a-treap)))
 
 (deftest test-rotate-right
-  (let [t (Treap. 1 :a 42 nil nil)
-        r (treap/-rotate-right t)
-        tgt (.R r)]
+  (let [^Treap t (Treap. 1 :a 42 nil nil)
+        ^Treap r (treap/-rotate-right t)
+        ^Treap tgt (.R r)]
     (are [x y] (= x y)
          (.p r) -1
          (.k r) nil
@@ -156,3 +157,74 @@
           emptied (reduce (fn [acc k] (treap/-delete acc k)) t (shuffle elems))]
       (is (nil? (seq emptied))))))
 
+(deftest test-split
+  (testing "split on nil"
+    (let [[l eq g] (treap/-split nil :foo)]
+      (is (nil? eq))
+      (is (nil? (seq l)))
+      (is (nil? (seq g)))))
+  (testing "putting a split back together"
+    (let [^Treap t  (treap/treap 1 2 3 :a :b {} 1 -42 [])
+          [l ^Treap eq g] (treap/-split t :a)]
+      (is (= (set (seq t)) (set (seq (into (conj g (.k eq)) l)))))))) 
+
+(deftest test-join
+  (testing "join with empty is identity"
+    (let [ks (range 300 310)
+          t (apply treap/treap ks)
+          min-key (first ks)]
+      (is (identical? t (treap/-join t nil)))
+      (is (identical? t (treap/-join nil t)))
+      (is (nil? (treap/-join nil nil)))))
+  (testing "reconstituting a split w/o the key"
+    (let [t (apply treap/treap (range -15 16))
+          [l eq g] (treap/-split t key)
+          joined (treap/-join l g)]
+      (is (not (some #{eq} (seq joined)))))))
+
+(deftest test-iperset
+  (let [s #{1 2 3 4 5 :a}
+        t (apply treap/treap s)]
+    (is (= s t)))
+
+  (testing "contains? and get"
+    (let [s #{:a :b :c 1 2 3 {} [] -777 1.4545 1/7}
+          t (apply treap/treap s)]
+      (doseq [x s]
+        (is (contains? t x))
+        (is (= x (get t x))))))
+
+  (testing "disj"
+    (let [^Treap t0 (treap/treap 1 2 3 4 5)
+          ^Treap t1 (disj t0 3)]
+      (is (not (nil? t1)))
+      (is (instance? Treap t1))
+      (is (not= (-> t1 seq set) (-> t0 seq set)))
+      (is (not (contains? t1 3))))
+    (let [^Treap t0 (treap/treap 1 2 3)
+          ^Treap t1 (disj t0 :not-here)]
+      (is (= (-> t1 seq set) (-> t0 seq set))))))
+
+(deftest test-object
+  (let [^Treap t1 (treap/treap 1 2 3)
+        ^Treap t2 (treap/treap 3 2 1)
+        ^Treap t3 (treap/treap 1 2 4)
+        s #{1 2 3}]
+    (testing "hashCode"
+      (is (= (.hashCode t1) (.hasheq t1)))
+      (is (= (.hashCode t1) (.hashCode t2)))
+      (is (= (hash t1) (hash s))))
+    (testing "equiv"
+      (is (.equiv t1 t2))
+      (is (= t1 t2))
+      (is (.equiv t1 s))
+      (is (= t1 s))
+      (is (not (.equiv t1 t3)))
+      (is (not (.equiv t1 [1 2 3])))
+      (is (not (.equiv t1 '(1 2 3)))))
+    (testing "hashCode/equiv"
+      (is (contains? #{t1} t2))
+      (is (= :found (get {t1 :found} t2)))
+      (is (not (contains? #{t1} t3)))
+      (is (nil? (get {t1 :found} t3)))
+      (is (= #{t1} #{t2})))))
