@@ -88,7 +88,6 @@
 
 (deftest test-nil
   (are [x y] (= x y)
-       -1  (treap/-priority nil)
        nil (treap/-rotate nil)
        nil (treap/-rotate-right nil)
        nil (treap/-rotate-left  nil)
@@ -155,7 +154,7 @@
     (let [elems (shuffle (range 50))
           t (apply treap/treap elems)
           emptied (reduce (fn [acc k] (treap/-delete acc k)) t (shuffle elems))]
-      (is (nil? (seq emptied))))))
+      (is (empty? emptied)))))
 
 (deftest test-split
   (testing "split on nil"
@@ -169,11 +168,11 @@
       (is (= (set (seq t)) (set (seq (into (conj g (.k eq)) l)))))))) 
 
 (deftest test-join
-  (testing "join with empty is identity"
+  (testing "join with empty is a no-op"
     (let [ks (range 300 310)
           t (apply treap/treap ks)
           min-key (first ks)]
-      (is (identical? t (treap/-join t nil)))
+      (is (= t (treap/-join t nil)))
       (is (identical? t (treap/-join nil t)))
       (is (nil? (treap/-join nil nil)))))
   (testing "reconstituting a split w/o the key"

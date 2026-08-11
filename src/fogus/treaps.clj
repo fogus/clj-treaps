@@ -2,7 +2,7 @@
 
 (set! *warn-on-reflection* true)
 
-(declare walk delete-impl uproot-impl split-impl random-priority EMPTY empty-treap?)
+(declare walk delete-impl uproot-impl split-impl random-priority EMPTY)
 
 (defprotocol RestructuringProtocol
   (-rotate-right [this])
@@ -99,10 +99,8 @@
   (-split [this key]
     (split-impl this key))
   (-join [this other]
-    (cond
-      (empty-treap? other) this
-      (> p (-priority other)) (Treap. p k v L (-join R other))
-      :else
+    (if (> p (-priority other))
+      (Treap. p k v L (-join R other))
       (let [^Treap o other]
         (Treap. (.p o) (.k o) (.v o) (-join this (.L o)) (.R o)))))
   (-union [this other]) ;; TODO
@@ -174,7 +172,7 @@
 
 (extend-type nil
   PriorityProtocol
-  (-priority [_] -1)
+  (-priority [_] Long/MIN_VALUE)
   
   RestructuringProtocol
   (-rotate-right [_] nil)
@@ -209,7 +207,6 @@
 (defn- uproot-impl
   [^Treap t]
   (cond
-    (nil? t) nil
     (and (nil? (.L t)) (nil? (.R t))) nil
     (> (-priority (.L t)) (-priority (.R t)))
     (let [^Treap rotated (-rotate-right t)]
@@ -228,21 +225,19 @@
     eq   - the node keyed `key`, or nil if absent
     gtr  - node whose keys are all > key"
   [^Treap node key]
-  (if (nil? node)
-    [nil nil nil]
-    (let [c (kompare (.k node) key)]
-      (cond
-        (neg? c) (let [[l eq g] (split-impl (.R node) key)]
-                   [(Treap. (.p node) (.k node) (.v node) (.L node) l) eq g])
+  (let [c (kompare (.k node) key)]
+    (cond
+      (neg? c) (let [[l eq g] (-split (.R node) key)]
+                 [(Treap. (.p node) (.k node) (.v node) (.L node) l) eq g])
 
-        (pos? c) (let [[l eq g] (split-impl (.L node) key)]
-                   [l eq (Treap. (.p node) (.k node) (.v node) g (.R node))])
+      (pos? c) (let [[l eq g] (-split (.L node) key)]
+                 [l eq (Treap. (.p node) (.k node) (.v node) g (.R node))])
 
-        :else [(.L node) (Treap. (.p node) (.k node) (.v node) nil nil) (.R node)]))))
+      :else [(.L node) (Treap. (.p node) (.k node) (.v node) nil nil) (.R node)])))
 
 (deftype EmptyTreap []
   PriorityProtocol
-  (-priority [_] -1)
+  (-priority [_] Long/MIN_VALUE)
 
   RestructuringProtocol
   (-rotate-right [this] this)
@@ -309,9 +304,6 @@
   (hasheq [_] (clojure.lang.Murmur3/hashUnordered nil)))
 
 (def ^:private EMPTY (EmptyTreap.))
-
-(defn- empty-treap? [t]
-  (or (nil? t) (instance? EmptyTreap t)))
 
 (defn- walk [elem-fn build-fn trp]
   (letfn [(visit [^Treap t]
