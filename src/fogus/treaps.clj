@@ -1,5 +1,7 @@
 (ns fogus.treaps)
 
+;; TODO design an SPI so that I can use treaps as backings for sets and maps
+
 (set! *warn-on-reflection* true)
 
 (declare walk delete-impl uproot-impl split-impl random-priority EMPTY)
@@ -103,7 +105,13 @@
       (Treap. p k v L (-join R other))
       (let [^Treap o other]
         (Treap. (.p o) (.k o) (.v o) (-join this (.L o)) (.R o)))))
-  (-union [this other]) ;; TODO
+  (-union [this other]
+    (cond
+      (= (-priority other) Long/MIN_VALUE) this
+      (< p (-priority other)) (-union other this)
+      :else
+      (let [[l _ g] (-split other k)]
+        (Treap. p k v (-union L l) (-union R g)))))
   (-intersect [this other]) ;; TODO
   (-diff [this other]) ;; TODO
   
@@ -256,7 +264,7 @@
   PersistentTreap
   (-split [this _] [this nil this])
   (-join [_ other] other)
-  (-union [this other]) ;; TODO
+  (-union [_ other] other)
   (-intersect [this other]) ;; TODO
   (-diff [this other]) ;; TODO
   
