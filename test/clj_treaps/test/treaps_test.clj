@@ -212,6 +212,34 @@
             t2 (apply treap/treap (drop 10 ks))]
         (is (= (treap/-union t1 t2) (treap/-union t2 t1)))))))
 
+(deftest test-intersect
+  (let [s1 #{1 2 3 4 5}
+        s2 #{6 7 8 9 10}
+        t1 (apply treap/treap s1)
+        t2 (apply treap/treap s2)]
+    (is (= (seq (s/intersection s1 s2)) (seq (treap/-intersect t1 t2)))))
+
+  (let [s1 #{1 2 3 4 5}
+        s2 #{4 5 6 7 8}
+        t1 (apply treap/treap s1)
+        t2 (apply treap/treap s2)]
+    (is (= (s/intersection s1 s2) (treap/-intersect t1 t2)))
+    (is (= (s/intersection s2 s1) (treap/-intersect t2 t1))))
+
+  (testing "intersect with empty/nil/self"
+    (let [ks (range 50)
+          t (apply treap/treap ks)]
+      (is (nil? (seq (treap/-intersect t nil))))
+      (is (empty? (treap/-intersect t EMPTY)))
+      (is (nil? (seq (treap/-intersect nil t))))
+      (is (empty? (treap/-intersect EMPTY t)))
+      (is (nil? (seq (treap/-intersect nil nil))))
+      (is (empty? (treap/-intersect EMPTY EMPTY)))
+      (is (= (set ks) (treap/-intersect t t)))
+      (let [t1 (apply treap/treap (take 10 ks))
+            t2 (apply treap/treap (drop 10 ks))]
+        (is (= (treap/-intersect t1 t2) (treap/-intersect t2 t1)))))))
+
 (deftest test-iperset
   (let [s #{1 2 3 4 5 :a}
         t (apply treap/treap s)]

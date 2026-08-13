@@ -112,7 +112,17 @@
       :else
       (let [[l _ g] (-split other k)]
         (Treap. p k v (-union L l) (-union R g)))))
-  (-intersect [this other]) ;; TODO
+  (-intersect [this other]
+    (cond
+      (= (-priority other) Long/MIN_VALUE) nil
+      (< p (-priority other)) (-intersect other this)
+      :else
+      (let [[l dup g] (-split other k)
+            left (-intersect L l)
+            right (-intersect R g)]
+        (if (nil? dup)
+          (-join left right)
+          (Treap. p k v left right)))))
   (-diff [this other]) ;; TODO
   
   clojure.lang.Seqable
@@ -200,7 +210,7 @@
   (-split [_ _] [nil nil nil])
   (-join [_ other] other)
   (-union [_ other] other)
-  (-intersect [_ other] other)
+  (-intersect [_ _] nil)
   (-diff [_ other] other))
 
 (defn- delete-impl
@@ -265,7 +275,7 @@
   (-split [this _] [this nil this])
   (-join [_ other] other)
   (-union [_ other] other)
-  (-intersect [this other]) ;; TODO
+  (-intersect [this _] this)
   (-diff [this other]) ;; TODO
   
   clojure.lang.Seqable
