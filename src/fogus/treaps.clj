@@ -4,7 +4,7 @@
 
 (set! *warn-on-reflection* true)
 
-(declare walk delete-impl uproot-impl split-impl random-priority EMPTY)
+(declare walk delete-impl uproot-impl split-impl diff-impl random-priority EMPTY)
 
 (defprotocol RestructuringProtocol
   (-rotate-right [this])
@@ -123,7 +123,8 @@
         (if (nil? dup)
           (-join left right)
           (Treap. p k v left right)))))
-  (-diff [this other]) ;; TODO
+  (-diff [this other]
+    (diff-impl this other true))
   
   clojure.lang.Seqable
   (seq [this]
@@ -211,7 +212,7 @@
   (-join [_ other] other)
   (-union [_ other] other)
   (-intersect [_ _] nil)
-  (-diff [_ other] other))
+  (-diff [this other] (diff-impl this other true)))
 
 (defn- delete-impl
   [^Treap t key]
@@ -253,6 +254,25 @@
 
       :else [(.L node) (Treap. (.p node) (.k node) (.v node) nil nil) (.R node)])))
 
+;; TODO: This was copied from the paper and works, but I need to better understand it.
+(defn- diff-impl
+  [r1 r2 r2-subtr?]
+  (cond
+    (or (= (-priority r1) Long/MIN_VALUE) (= (-priority r2) Long/MIN_VALUE))
+    (if r2-subtr? r1 r2)
+
+    (< (-priority r1) (-priority r2))
+    (diff-impl r2 r1 (not r2-subtr?))
+
+    :else
+    (let [^Treap t1 r1
+          [less dup gtr] (-split r2 (.k t1))
+          left  (diff-impl (.L t1) less r2-subtr?)
+          right (diff-impl (.R t1) gtr r2-subtr?)]
+      (if (and (nil? dup) r2-subtr?)
+        (Treap. (.p t1) (.k t1) (.v t1) left right)
+        (-join left right)))))
+
 (deftype EmptyTreap []
   PriorityProtocol
   (-priority [_] Long/MIN_VALUE)
@@ -276,7 +296,7 @@
   (-join [_ other] other)
   (-union [_ other] other)
   (-intersect [this _] this)
-  (-diff [this other]) ;; TODO
+  (-diff [this other] (diff-impl this other true))
   
   clojure.lang.Seqable
   (seq [_] nil)

@@ -240,6 +240,36 @@
             t2 (apply treap/treap (drop 10 ks))]
         (is (= (treap/-intersect t1 t2) (treap/-intersect t2 t1)))))))
 
+(deftest test-diff
+  (let [s1 #{1 2 3 4 5}
+        s2 #{6 7 8 9 10}
+        t1 (apply treap/treap s1)
+        t2 (apply treap/treap s2)]
+    (is (= (s/difference s1 s2) (treap/-diff t1 t2)))
+    (is (= (s/difference s2 s1) (treap/-diff t2 t1))))
+
+  (let [s1 #{1 2 3 4 5}
+        s2 #{4 5 6 7 8}
+        t1 (apply treap/treap s1)
+        t2 (apply treap/treap s2)]
+    (is (= (s/difference s1 s2) (treap/-diff t1 t2)))
+    (is (= (s/difference s2 s1) (treap/-diff t2 t1))))
+
+  (testing "diff with empty/nil/self"
+    (let [ks (range 50)
+          t (apply treap/treap ks)]
+      (is (= (set ks) (treap/-diff t nil)))
+      (is (= (set ks) (treap/-diff t EMPTY)))
+      (is (nil? (seq (treap/-diff nil t))))
+      (is (empty? (treap/-diff EMPTY t)))
+      (is (nil? (seq (treap/-diff nil nil))))
+      (is (empty? (treap/-diff EMPTY EMPTY)))
+      (is (empty? (treap/-diff t t)))
+      (let [t1 (apply treap/treap (take 10 ks))
+            t2 (apply treap/treap (drop 10 ks))]
+        (is (= (set (take 10 ks)) (set (seq (treap/-diff t1 t2)))))
+        (is (= (set (drop 10 ks)) (set (seq (treap/-diff t2 t1)))))))))
+
 (deftest test-iperset
   (let [s #{1 2 3 4 5 :a}
         t (apply treap/treap s)]
