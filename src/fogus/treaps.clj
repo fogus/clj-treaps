@@ -1,6 +1,5 @@
 (ns fogus.treaps
-  (:require [clojure.set :as set]
-            [fogus.treaps.impl :as impl]))
+  (:require [fogus.treaps.impl :as impl]))
 
 ;; TODO: toArray/1
 ;; TODO: metadata
@@ -90,18 +89,6 @@
   clojure.lang.IHashEq
   (hasheq [this]
     (clojure.lang.Murmur3/hashUnordered this)))
-
-(extend-protocol impl/PersistentTreap
-  java.util.Set
-  (-split [_ _] (throw (UnsupportedOperationException. "java.util.Set does not support -split")))
-  (-join [_ _] (throw (UnsupportedOperationException. "java.util.Set does not support -join")))
-  (-union [this other] (set/union this other))
-  (-intersect [this other] (set/intersection this other))
-  (-diff [this other] (set/difference this other)))
-
-(extend-protocol impl/TreapRoot
-  java.util.Set
-  (-derive-root [this] (apply impl/treap this)))
 
 ;; Public API
 

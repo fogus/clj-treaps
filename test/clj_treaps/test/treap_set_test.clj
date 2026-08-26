@@ -1,11 +1,9 @@
 (ns clj-treaps.test.treap-set-test
   (:require [fogus.treaps :as treaps]
-            [fogus.treaps.impl :as impl]
             [fogus.treaps.set :as treaps.set]
             [clojure.set :as s])
   (:use clojure.test)
-  (:import [fogus.treaps TreapSet]
-           [java.util HashSet]))
+  (:import [fogus.treaps TreapSet]))
 
 (set! *warn-on-reflection* true)
 
@@ -199,29 +197,9 @@
       (is (instance? TreapSet (treaps.set/difference EMPTY EMPTY)))
       (is (instance? TreapSet (treaps.set/difference EMPTY EMPTY EMPTY))))))
 
-(deftest test-treap-set-mixed-type-operations
+(deftest test-treap-set-nil-and-empty-args
   (let [ts (treaps/treap-set 1 2 3)
-        ts2 (treaps/treap-set 3 4 5)
-        clj-set #{3 4 5}
-        java-set (doto (HashSet.) (.add 3) (.add 4) (.add 5))
-        raw-treap (impl/treap 1 2 3)
         EMPTY @#'treaps/EMPTY]
-    (testing "TreapSet mixed with a plain java.util.Set"
-      (is (instance? TreapSet (treaps.set/union ts java-set)))
-      (is (= #{1 2 3 4 5} (treaps.set/union ts java-set)))
-      (is (instance? TreapSet (treaps.set/intersection ts java-set)))
-      (is (= #{3} (treaps.set/intersection ts java-set)))
-      (is (instance? TreapSet (treaps.set/difference ts java-set)))
-      (is (= #{1 2} (treaps.set/difference ts java-set))))
-
-    (testing "TreapSet mixed with a Clojure persistent set"
-      (is (instance? TreapSet (treaps.set/union ts clj-set)))
-      (is (= #{1 2 3 4 5} (treaps.set/union ts clj-set)))
-      (is (instance? TreapSet (treaps.set/intersection ts clj-set)))
-      (is (= #{3} (treaps.set/intersection ts clj-set)))
-      (is (instance? TreapSet (treaps.set/difference ts clj-set)))
-      (is (= #{1 2} (treaps.set/difference ts clj-set))))
-
     (testing "TreapSet mixed with nil and EMPTY"
       (is (instance? TreapSet (treaps.set/union ts nil)))
       (is (= #{1 2 3} (treaps.set/union ts nil)))
@@ -229,13 +207,7 @@
       (is (= #{1 2 3} (treaps.set/union nil ts)))
       (is (instance? TreapSet (treaps.set/union ts EMPTY)))
       (is (instance? TreapSet (treaps.set/union EMPTY ts)))
-      (is (= #{1 2 3} (treaps.set/union EMPTY ts))))
-
-    (testing "a variadic mix of TreapSet, a Clojure set, a java.util.Set, nil, and EMPTY"
-      (is (instance? TreapSet (treaps.set/union ts clj-set java-set nil EMPTY)))
-      (is (= #{1 2 3 4 5} (treaps.set/union ts clj-set java-set nil EMPTY)))
-      (is (instance? TreapSet (treaps.set/intersection ts clj-set java-set)))
-      (is (= #{3} (treaps.set/intersection ts clj-set java-set))))))
+      (is (= #{1 2 3} (treaps.set/union EMPTY ts))))))
 
 (deftest test-treap-set-object
   (let [^TreapSet t1 (treaps/treap-set 1 2 3)
