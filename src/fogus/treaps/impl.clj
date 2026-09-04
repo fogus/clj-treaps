@@ -18,8 +18,7 @@
 
 (defprotocol RestructuringProtocol
   (-rotate-right [this])
-  (-rotate-left  [this])
-  (-rotate       [this]))
+  (-rotate-left  [this]))
 
 (defprotocol PriorityProtocol
   (-priority [this]))
@@ -69,11 +68,6 @@
         (Treap. (.p l) (.k l) (.v l)
                 (.L l)
                 (Treap. p k v (.R l) R)))))
-  (-rotate [this]
-    (cond
-      (< p (-priority L)) (-rotate-right this)
-      (< p (-priority R)) (-rotate-left this)
-      :else this))
   FindProtocol
   (-find [this key]
     (let [c (kompare key k)]
@@ -113,7 +107,7 @@
   (-split [this key]
     (split-impl this key))
   (-join [this other]
-    (if (> p (-priority other))
+    (if (>= p (-priority other))
       (Treap. p k v L (-join R other))
       (let [^Treap o other]
         (Treap. (.p o) (.k o) (.v o) (-join this (.L o)) (.R o)))))
@@ -158,8 +152,7 @@
   RestructuringProtocol
   (-rotate-right [_] nil)
   (-rotate-left [_] nil)
-  (-rotate [_] nil)
-  
+
   FindProtocol
   (-find [_ _] nil)
   
@@ -244,7 +237,6 @@
   RestructuringProtocol
   (-rotate-right [this] this)
   (-rotate-left [this] this)
-  (-rotate [this] this)
 
   FindProtocol
   (-find [_ _] nil)

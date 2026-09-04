@@ -90,7 +90,6 @@
 
   (deftest test-nil
     (are [x y] (= x y)
-      nil (impl/-rotate nil)
       nil (impl/-rotate-right nil)
       nil (impl/-rotate-left  nil)
       nil (impl/-find nil 0)
