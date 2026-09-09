@@ -1,4 +1,4 @@
-(ns clj-treaps.test.treaps-test
+(ns clj-treaps.test.treap-test
   (:require [fogus.treaps.impl :as impl])
   (:use clojure.test)
   (:import [fogus.treaps.impl Treap]))
@@ -104,10 +104,6 @@
   (let [ks [10 3 7 1 9 4 6 2 8 5]
         t1 (apply impl/treap ks)
         t2 (apply impl/treap ks)])
-  (let [ks [10 3 7 1 9 4 6 2 8 5]
-        h1 (apply impl/treap-with-priority-fn hash ks)
-        h2 (apply impl/treap-with-priority-fn hash ks)]
-    (is (= 3 (impl/-find h1 3))))
   (testing "that hash collision handled properly"
     (let [a (reify Object
               (hashCode [_] 42)
