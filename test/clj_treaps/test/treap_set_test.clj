@@ -8,10 +8,12 @@
 (set! *warn-on-reflection* true)
 
 (deftest test-treap-set-construction
-  (let [s5 (treaps/treap-set 1 2 3 4 5)]
+  (let [^TreapSet s5 (treaps/treap-set 1 2 3 4 5)]
     (is (= 5 (count s5)))
     (is (= #{1 2 3 4 5} (set (seq s5))))
-    (is (= #{1 2 3 4 5} (set s5))))
+    (is (= #{1 2 3 4 5} (set s5)))
+    (let [^objects arr (into-array [6 7 8 9 10 11])]
+      (is (= #{1 2 3 4 5 nil} (->> arr (.toArray s5) seq set)))))
   (let [s6 (treaps/treap-set :a 1 :b 2 :c 3)]
     (is (= 6 (count s6))))
   (testing "that hash collision handled properly"

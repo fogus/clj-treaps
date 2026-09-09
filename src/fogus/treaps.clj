@@ -49,9 +49,7 @@
   that makes composing and decomposing treaps cheap."
   (:require [fogus.treaps.impl :as impl]))
 
-;; TODO: toArray/1
 ;; TODO: cached hashes
-;; TODO: docs
 ;; TODO: tail-recursive split/diff/etc. impls
 
 (set! *warn-on-reflection* true)
@@ -139,7 +137,8 @@
   (isEmpty [this] (empty? (seq this)))
   (size [this] (count this))
   (toArray [this] (into-array Object this))
-  (^objects toArray [this ^objects arr]) ;; TODO
+  (^objects toArray [this ^objects arr]
+   (clojure.lang.RT/seqToPassedArray (seq this) arr))
 
   java.lang.Iterable
   (iterator [this]
