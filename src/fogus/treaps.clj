@@ -1,25 +1,24 @@
 (ns fogus.treaps
   "A Clojure implementation of persistent tree + heap = treaps
-  according to the paper \"Fast Set Operations Using Treaps\"
-  by Guy E. Blelloch and Margaret Reid-Miller. 
+  according to the paper \"Fast Set Operations Using Treaps\" by Guy
+  E. Blelloch and Margaret Reid-Miller.
 
-  The tree aspect refers to the binary search tree structure
-  imposed by key ordering, the lesser on the left and the
-  greater on the right. A heap refers to the property of the
-  relationship of the parent and descendant nodes withinn the
-  subtrees. That is, every parent must be 'bigger' than its
-  children, where 'bigger' means higher priority. These two
-  orders are independent by design. A treap is best understood
-  as a binary search tree on keys whose specific shape, among all
-  shapes consistent with that key order, is selected by treating
-  priority as a second, unrelated ordering criterion.
+  The tree aspect refers to the binary search tree structure imposed
+  by key ordering, the lesser on the left and the greater on the
+  right. A heap refers to the property of the relationship of the
+  parent and descendant nodes withinn the subtrees. That is, every
+  parent must be 'bigger' than its children, where 'bigger' means
+  higher priority. These two orders are independent by design. A treap
+  is best understood as a binary search tree on keys whose specific
+  shape, among all shapes consistent with that key order, is selected
+  by treating priority as a second, unrelated ordering criterion.
   
-  A treap orders its elements by a custom comparator, maintaining
-  the ordinary binary search tree invariant: every element in a
-  node's left subtree compares less than that node, and every
-  element in its right subtree compares greater. In-order traversal
-  therefore always yields a total order, independent of insertion
-  history or the tree's internal shape.
+  A treap orders its elements by a custom comparator, maintaining the
+  ordinary binary search tree invariant: every element in a node's
+  left subtree compares less than that node, and every element in its
+  right subtree compares greater. In-order traversal therefore always
+  yields a total order, independent of insertion history or the tree's
+  internal shape.
 
   Shape is governed separately, by a random priority. Each treap node
   carries a priority, and the tree is additionally kept in heap order
@@ -30,23 +29,25 @@
   than structural: it holds over the distribution of priorities, not
   by construction for any single tree.
 
-  Despite this randomness, iteration order is stable. Random priorities
-  determine only where a node sits within its structurally valid range,
-  never which range that is. The comparator's order constrains every valid
-  shape identically. Two treaps holding the same elements under the
-  same comparator therefore always traverse identically, regardless of
-  priority values, insertion order, or history.
+  Despite this randomness, iteration order is stable. Random
+  priorities determine only where a node sits within its structurally
+  valid range, never which range that is. The comparator's order
+  constrains every valid shape identically. Two treaps holding the
+  same elements under the same comparator therefore always traverse
+  identically, regardless of priority values, insertion order, or
+  history.
 
-  Because shape follows purely from priority rather than from insertion
-  history, a treap can be decomposed and recombined without ever needing to
-  rebalance. Splitting at a key or joining two ordered treaps is a structural
-  operation, not a repair step, since the heap and tree invariants remain
-  trivially satisfiable at every point in the process. Set operations (union,
-  intersection, difference) reduce entirely to split and join, applied
-  recursively along the shape the priorities already dictate. There is no
-  separate balancing pass, no bookkeeping of rotations or color bits; the
-  randomness that gives a treap its expected balance is the same randomness
-  that makes composing and decomposing treaps cheap."
+  Because shape follows purely from priority rather than from
+  insertion history, a treap can be decomposed and recombined without
+  ever needing to rebalance. Splitting at a key or joining two ordered
+  treaps is a structural operation, not a repair step, since the heap
+  and tree invariants remain trivially satisfiable at every point in
+  the process. Set operations (union, intersection, difference) reduce
+  entirely to split and join, applied recursively along the shape the
+  priorities already dictate. There is no separate balancing pass, no
+  bookkeeping of rotations or color bits; the randomness that gives a
+  treap its expected balance is the same randomness that makes
+  composing and decomposing treaps cheap."
   (:require [fogus.treaps.impl :as impl]))
 
 ;; TODO: tail-recursive split/diff/etc. impls
@@ -64,7 +65,7 @@
   (meta [_] metadata)
   
   impl/TreapSPI
-  ;; TreapSet exposes just k to the outside world since it's always the same
+  ;; TreapSet just exposes k to the outside world since it's always the same
   ;; as v anyway.
   (-materialize-kv [_ k _] k)
   ;; Treats the obj itself as both k and v.
@@ -156,27 +157,6 @@
           (set! __heq hc)
           hc)
         hc))))
-
-;; Printing
-
-(defmethod print-method fogus.treaps.impl.Treap
-  [^fogus.treaps.impl.Treap t ^java.io.Writer w]
-  (.write w (str "#T{"))  (print-method (.p t) w)
-  (.write w (str " ("))   (print-method (.k t) w)
-  (.write w (str " => ")) (print-method (.v t) w)
-  (.write w (str ")"))
-  (.write w (str " "))   (print-method (.L t) w)
-  (.write w (str " "))   (print-method (.R t) w)
-  (.write w "}"))
-
-(defmethod print-method TreapSet
-  [^TreapSet ts ^java.io.Writer w]
-  (.write w "#TreapSet")
-  (print-method (.root ts) w))
-
-(defmethod print-method fogus.treaps.impl.EmptyTreap
-  [_ ^java.io.Writer w]
-  (.write w "#T{}"))
 
 ;; Public API
 
