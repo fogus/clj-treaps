@@ -49,17 +49,16 @@
   that makes composing and decomposing treaps cheap."
   (:require [fogus.treaps.impl :as impl]))
 
-;; TODO: cached hashes
 ;; TODO: tail-recursive split/diff/etc. impls
 
 (set! *warn-on-reflection* true)
 
 (def EMPTY impl/EMPTY_TREAP)
 
-(deftype TreapSet [metadata root]
+(deftype TreapSet [metadata root ^:unsynchronized-mutable __hc ^:unsynchronized-mutable __heq]
   clojure.lang.IObj
   (withMeta [_ m]
-    (TreapSet. m root))
+    (TreapSet. m root __hc __heq))
 
   clojure.lang.IMeta
   (meta [_] metadata)
@@ -78,13 +77,18 @@
   (equals [this other]
     (clojure.lang.APersistentSet/setEquals this other))
   (hashCode [this]
-    (clojure.lang.Murmur3/hashUnordered this))
+    (let [hc __hc]
+      (if (zero? hc)
+        (let [hc (clojure.lang.Murmur3/hashUnordered this)]
+          (set! __hc hc)
+          hc)
+        hc)))
 
   clojure.lang.IPersistentCollection
   (cons [this obj]
     (let [[k v] (impl/-unwrap-kv this obj)]
-      (TreapSet. metadata (impl/-insert root (impl/random-priority k) k v))))
-  (empty [_] (TreapSet. metadata EMPTY))
+      (TreapSet. metadata (impl/-insert root (impl/random-priority k) k v) 0 0)))
+  (empty [_] (TreapSet. metadata EMPTY 0 0))
   (equiv [this other]
     (cond
       (or (instance? clojure.lang.IPersistentSet other) (instance? java.util.Set other))
@@ -95,7 +99,7 @@
   clojure.lang.IPersistentSet
   (disjoin [_ key]
     (let [[l _ g] (impl/-split root key)]
-      (TreapSet. metadata (impl/-join l g))))
+      (TreapSet. metadata (impl/-join l g) 0 0)))
   (get [_ key]
     (impl/-find root key))
 
@@ -105,11 +109,11 @@
   (-join [_ _]
     (throw (UnsupportedOperationException. "TreapSet does not support -join")))
   (-union [_ other]
-    (TreapSet. metadata (or (impl/-union root (impl/-derive-root other)) EMPTY)))
+    (TreapSet. metadata (or (impl/-union root (impl/-derive-root other)) EMPTY) 0 0))
   (-intersect [_ other]
-    (TreapSet. metadata (or (impl/-intersect root (impl/-derive-root other)) EMPTY)))
+    (TreapSet. metadata (or (impl/-intersect root (impl/-derive-root other)) EMPTY) 0 0))
   (-diff [_ other]
-    (TreapSet. metadata (or (impl/-diff root (impl/-derive-root other)) EMPTY)))
+    (TreapSet. metadata (or (impl/-diff root (impl/-derive-root other)) EMPTY) 0 0))
 
   impl/TreapRoot
   (-derive-root [_] root)
@@ -146,7 +150,12 @@
 
   clojure.lang.IHashEq
   (hasheq [this]
-    (clojure.lang.Murmur3/hashUnordered this)))
+    (let [hc __heq]
+      (if (zero? hc)
+        (let [hc (clojure.lang.Murmur3/hashUnordered this)]
+          (set! __heq hc)
+          hc)
+        hc))))
 
 ;; Printing
 
@@ -176,4 +185,4 @@
   same independent-random-priority assumption the paper's expected
   O(m log(n/m)) union/intersection/difference bounds depend on."
   [& elems]
-  (TreapSet. nil (reduce (fn [t k] (impl/-insert t (impl/random-priority k) k k)) EMPTY elems)))
+  (TreapSet. nil (reduce (fn [t k] (impl/-insert t (impl/random-priority k) k k)) EMPTY elems) 0 0))

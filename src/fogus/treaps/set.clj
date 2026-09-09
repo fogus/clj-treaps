@@ -8,8 +8,7 @@
   [maybe-ts]
   (if (instance? fogus.treaps.TreapSet maybe-ts)
     maybe-ts
-    (fogus.treaps.TreapSet. nil
-     (or (impl/-derive-root maybe-ts) treaps/EMPTY))))
+    (fogus.treaps.TreapSet. nil (or (impl/-derive-root maybe-ts) treaps/EMPTY) 0 0)))
 
 (defn union
   "Return a treap set that is the union of the input treap sets."
