@@ -50,7 +50,6 @@
   (:require [fogus.treaps.impl :as impl]))
 
 ;; TODO: toArray/1
-;; TODO: metadata and IObj also allows (set (treap-set 1))
 ;; TODO: cached hashes
 ;; TODO: docs
 ;; TODO: tail-recursive split/diff/etc. impls
@@ -59,7 +58,14 @@
 
 (def EMPTY impl/EMPTY_TREAP)
 
-(deftype TreapSet [root]
+(deftype TreapSet [metadata root]
+  clojure.lang.IObj
+  (withMeta [_ m]
+    (TreapSet. m root))
+
+  clojure.lang.IMeta
+  (meta [_] metadata)
+  
   impl/TreapSPI
   ;; TreapSet exposes just k to the outside world since it's always the same
   ;; as v anyway.
@@ -79,8 +85,8 @@
   clojure.lang.IPersistentCollection
   (cons [this obj]
     (let [[k v] (impl/-unwrap-kv this obj)]
-      (TreapSet. (impl/-insert root (impl/random-priority k) k v))))
-  (empty [_] (TreapSet. EMPTY))
+      (TreapSet. metadata (impl/-insert root (impl/random-priority k) k v))))
+  (empty [_] (TreapSet. metadata EMPTY))
   (equiv [this other]
     (cond
       (or (instance? clojure.lang.IPersistentSet other) (instance? java.util.Set other))
@@ -91,7 +97,7 @@
   clojure.lang.IPersistentSet
   (disjoin [_ key]
     (let [[l _ g] (impl/-split root key)]
-      (TreapSet. (impl/-join l g))))
+      (TreapSet. metadata (impl/-join l g))))
   (get [_ key]
     (impl/-find root key))
 
@@ -101,11 +107,11 @@
   (-join [_ _]
     (throw (UnsupportedOperationException. "TreapSet does not support -join")))
   (-union [_ other]
-    (TreapSet. (or (impl/-union root (impl/-derive-root other)) EMPTY)))
+    (TreapSet. metadata (or (impl/-union root (impl/-derive-root other)) EMPTY)))
   (-intersect [_ other]
-    (TreapSet. (or (impl/-intersect root (impl/-derive-root other)) EMPTY)))
+    (TreapSet. metadata (or (impl/-intersect root (impl/-derive-root other)) EMPTY)))
   (-diff [_ other]
-    (TreapSet. (or (impl/-diff root (impl/-derive-root other)) EMPTY)))
+    (TreapSet. metadata (or (impl/-diff root (impl/-derive-root other)) EMPTY)))
 
   impl/TreapRoot
   (-derive-root [_] root)
@@ -171,4 +177,4 @@
   same independent-random-priority assumption the paper's expected
   O(m log(n/m)) union/intersection/difference bounds depend on."
   [& elems]
-  (TreapSet. (reduce (fn [t k] (impl/-insert t (impl/random-priority k) k k)) EMPTY elems)))
+  (TreapSet. nil (reduce (fn [t k] (impl/-insert t (impl/random-priority k) k k)) EMPTY elems)))

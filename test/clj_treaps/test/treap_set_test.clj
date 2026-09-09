@@ -10,7 +10,8 @@
 (deftest test-treap-set-construction
   (let [s5 (treaps/treap-set 1 2 3 4 5)]
     (is (= 5 (count s5)))
-    (is (= #{1 2 3 4 5} (set (seq s5)))))
+    (is (= #{1 2 3 4 5} (set (seq s5))))
+    (is (= #{1 2 3 4 5} (set s5))))
   (let [s6 (treaps/treap-set :a 1 :b 2 :c 3)]
     (is (= 6 (count s6))))
   (testing "that hash collision handled properly"
@@ -393,3 +394,24 @@
                                             (treaps/treap-set 2))))
     (is (empty? (treaps.set/symmetric-difference (treaps/treap-set 1)
                                                  (treaps/treap-set 1))))))
+
+(deftest treap-metadata-test
+  (testing "metadata attaches via with-meta and is retrievable via meta"
+    (let [t (with-meta (treaps/treap-set 1 2 3) {:source :test})
+          t' (with-meta t {:b 2})
+          t'' (vary-meta t' update :b inc)]
+      (is (= {:source :test} (meta t)))
+      (is (= {:b 2} (meta t')))
+      (is (= {:b 3} (meta t'')))))
+
+  (testing "metadata persists through some operations"
+    (let [t (with-meta (treaps/treap-set 1 2 3) {:tag :x})
+          t-disj (disj t 2)
+          t-conj (conj t 4)
+          t-into (into t [3 4])]
+      (is (= {:tag :x} (meta t-disj)))
+      (is (= #{1 3} (set t-disj)))
+      (is (= {:tag :x} (meta t-conj)))
+      (is (= #{1 2 3 4} (set t-conj)))
+      (is (= {:tag :x} (meta t-into)))
+      (is (= #{1 2 3 4} (set t-into))))))

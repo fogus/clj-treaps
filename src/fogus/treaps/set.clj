@@ -8,7 +8,7 @@
   [maybe-ts]
   (if (instance? fogus.treaps.TreapSet maybe-ts)
     maybe-ts
-    (fogus.treaps.TreapSet.
+    (fogus.treaps.TreapSet. nil
      (or (impl/-derive-root maybe-ts) treaps/EMPTY))))
 
 (defn union
