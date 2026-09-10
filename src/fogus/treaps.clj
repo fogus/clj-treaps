@@ -54,7 +54,7 @@
 
 (set! *warn-on-reflection* true)
 
-(deftype TreapSet [metadata root ^:unsynchronized-mutable __hc ^:unsynchronized-mutable __heq]
+(deftype ^:no-doc TreapSet [metadata root ^:unsynchronized-mutable __hc ^:unsynchronized-mutable __heq]
   clojure.lang.IObj
   (withMeta [_ m]
     (TreapSet. m root __hc __heq))
@@ -158,7 +158,8 @@
 
 ;; Public API
 
-(def EMPTY (TreapSet. nil impl/EMPTY_TREAP 0 0))
+(def ^{:doc "An empty TreapSet"}
+  EMPTY (TreapSet. nil impl/EMPTY_TREAP 0 0))
 
 (defn treap-set
   "Builds a TreapSet from elems."

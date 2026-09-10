@@ -56,13 +56,6 @@ A Clojure implementation of persistent tree + heap = treaps
 
 
 
-## <a name="fogus.treaps/->TreapSet">`->TreapSet`</a><a name="fogus.treaps/->TreapSet"></a>
-``` clojure
-
-(->TreapSet metadata root __hc __heq)
-```
-<p><sub><a href="https://github.com/fogus/clj-treaps/blob/main/src/fogus/treaps.clj#L57-L157">Source</a></sub></p>
-
 ## <a name="fogus.treaps/->treap-set">`->treap-set`</a><a name="fogus.treaps/->treap-set"></a>
 ``` clojure
 
@@ -70,19 +63,15 @@ A Clojure implementation of persistent tree + heap = treaps
 ```
 
 Pours elements from coll into a new TreapSet.
-<p><sub><a href="https://github.com/fogus/clj-treaps/blob/main/src/fogus/treaps.clj#L173-L176">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/clj-treaps/blob/main/src/fogus/treaps.clj#L174-L177">Source</a></sub></p>
 
 ## <a name="fogus.treaps/EMPTY">`EMPTY`</a><a name="fogus.treaps/EMPTY"></a>
 
 
 
-<p><sub><a href="https://github.com/fogus/clj-treaps/blob/main/src/fogus/treaps.clj#L161-L161">Source</a></sub></p>
 
-## <a name="fogus.treaps/TreapSet">`TreapSet`</a><a name="fogus.treaps/TreapSet"></a>
-
-
-
-<p><sub><a href="https://github.com/fogus/clj-treaps/blob/main/src/fogus/treaps.clj#L57-L157">Source</a></sub></p>
+An empty TreapSet
+<p><sub><a href="https://github.com/fogus/clj-treaps/blob/main/src/fogus/treaps.clj#L161-L162">Source</a></sub></p>
 
 ## <a name="fogus.treaps/treap-set">`treap-set`</a><a name="fogus.treaps/treap-set"></a>
 ``` clojure
@@ -91,7 +80,7 @@ Pours elements from coll into a new TreapSet.
 ```
 
 Builds a TreapSet from elems.
-<p><sub><a href="https://github.com/fogus/clj-treaps/blob/main/src/fogus/treaps.clj#L163-L171">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/clj-treaps/blob/main/src/fogus/treaps.clj#L164-L172">Source</a></sub></p>
 
 -----
 # <a name="fogus.treaps.set">fogus.treaps.set</a>
