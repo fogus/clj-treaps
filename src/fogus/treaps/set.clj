@@ -8,26 +8,26 @@
   [maybe-ts]
   (if (instance? fogus.treaps.TreapSet maybe-ts)
     maybe-ts
-    (fogus.treaps.TreapSet. nil (or (impl/-derive-root maybe-ts) treaps/EMPTY) 0 0)))
+    (fogus.treaps.TreapSet. nil (or (impl/-derive-root maybe-ts) impl/EMPTY_TREAP) 0 0)))
 
 (defn union
   "Return a treap set that is the union of the input treap sets."
   ([] (treaps/treap-set))
-  ([s] (ensure-treap-set s))
-  ([s1 s2] (ensure-treap-set (impl/-union s1 s2)))
-  ([s1 s2 & more] (reduce union (union s1 s2) more)))
+  ([t] (ensure-treap-set t))
+  ([t1 t2] (ensure-treap-set (impl/-union t1 t2)))
+  ([t1 t2 & more] (reduce union (union t1 t2) more)))
 
 (defn intersection
   "Return a treap set that is the intersection of the input treap sets."
-  ([s] (ensure-treap-set s))
-  ([s1 s2] (ensure-treap-set (impl/-intersect s1 s2)))
-  ([s1 s2 & more] (reduce intersection (intersection s1 s2) more)))
+  ([t] (ensure-treap-set t))
+  ([t1 t2] (ensure-treap-set (impl/-intersect t1 t2)))
+  ([t1 t2 & more] (reduce intersection (intersection t1 t2) more)))
 
 (defn difference
   "Return a treap set that is the first set without elements of the remaining treap sets"
-  ([s] (ensure-treap-set s))
-  ([s1 s2] (ensure-treap-set (impl/-diff s1 s2)))
-  ([s1 s2 & more] (reduce difference (difference s1 s2) more)))
+  ([t] (ensure-treap-set t))
+  ([t1 t2] (ensure-treap-set (impl/-diff t1 t2)))
+  ([t1 t2 & more] (reduce difference (difference t1 t2) more)))
 
 (defn subset?
   "Is t1 a subset of t2?"
