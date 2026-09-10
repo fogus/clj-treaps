@@ -35,7 +35,7 @@
   (empty? (impl/-diff t1 t2)))
 
 (defn superset?
-  "Is set1 a superset of set2?"
+  "Is t1 a superset of t2?"
   [t1 t2]
   (subset? t2 t1))
 

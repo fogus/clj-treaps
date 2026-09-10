@@ -153,8 +153,12 @@
       (is (nil? (get {t1 :found} t3)))
       (is (= #{t1} #{t2})))))
 
+(def ^:private using-treap-fns (atom true))
+
 (defn- tr-union [& sets]
-  (apply treaps.set/union (map #(apply treaps/treap-set %) sets)))
+  (if @using-treap-fns
+    (apply treaps.set/union (map #(apply treaps/treap-set %) sets))
+    (apply s/union (map #(apply treaps/treap-set %) sets))))
 
 (deftest test-treap-set-union
   (let [s1 #{1 2 3 4 5}
@@ -183,42 +187,48 @@
             t2 (apply treaps/treap-set (drop 10 ks))]
         (is (= (set (seq (treaps.set/union t1 t2))) (set (seq (treaps.set/union t2 t1))))))))
 
-  (testing "examples from clojure.set"
-    (are [x y] (= x y)
-      (tr-union) #{}
+  (dotimes [n 2]
+    (testing "examples from clojure.set"
+      (are [x y] (= x y)
+        (tr-union) #{}
 
-      ; identity
-      (tr-union #{}) #{}
-      (tr-union #{1}) #{1}
-      (tr-union #{1 2 3}) #{1 2 3}
+        ;; identity
+        (tr-union #{}) #{}
+        (tr-union #{1}) #{1}
+        (tr-union #{1 2 3}) #{1 2 3}
 
-      ; 2 sets, at least one is empty
-      (tr-union #{} #{}) #{}
-      (tr-union #{} #{1}) #{1}
-      (tr-union #{} #{1 2 3}) #{1 2 3}
-      (tr-union #{1} #{}) #{1}
-      (tr-union #{1 2 3} #{}) #{1 2 3}
+        ;; 2 sets, at least one is empty
+        (tr-union #{} #{}) #{}
+        (tr-union #{} #{1}) #{1}
+        (tr-union #{} #{1 2 3}) #{1 2 3}
+        (tr-union #{1} #{}) #{1}
+        (tr-union #{1 2 3} #{}) #{1 2 3}
 
-      ; 2 sets
-      (tr-union #{1} #{2}) #{1 2}
-      (tr-union #{1} #{1 2}) #{1 2}
-      (tr-union #{2} #{1 2}) #{1 2}
-      (tr-union #{1 2} #{3}) #{1 2 3}
-      (tr-union #{1 2} #{2 3}) #{1 2 3}
+        ;; 2 sets
+        (tr-union #{1} #{2}) #{1 2}
+        (tr-union #{1} #{1 2}) #{1 2}
+        (tr-union #{2} #{1 2}) #{1 2}
+        (tr-union #{1 2} #{3}) #{1 2 3}
+        (tr-union #{1 2} #{2 3}) #{1 2 3}
 
-      ; 3 sets, some are empty
-      (tr-union #{} #{} #{}) #{}
-      (tr-union #{1} #{} #{}) #{1}
-      (tr-union #{} #{1} #{}) #{1}
-      (tr-union #{} #{} #{1}) #{1}
-      (tr-union #{1 2} #{2 3} #{}) #{1 2 3}
+        ;; 3 sets, some are empty
+        (tr-union #{} #{} #{}) #{}
+        (tr-union #{1} #{} #{}) #{1}
+        (tr-union #{} #{1} #{}) #{1}
+        (tr-union #{} #{} #{1}) #{1}
+        (tr-union #{1 2} #{2 3} #{}) #{1 2 3}
 
-      ; 3 sets
-      (tr-union #{1 2} #{3 4} #{5 6}) #{1 2 3 4 5 6}
-      (tr-union #{1 2} #{2 3} #{1 3 4}) #{1 2 3 4})))
+        ;; 3 sets
+        (tr-union #{1 2} #{3 4} #{5 6}) #{1 2 3 4 5 6}
+        (tr-union #{1 2} #{2 3} #{1 3 4}) #{1 2 3 4}))
+
+    (swap! using-treap-fns (constantly false)))
+  (swap! using-treap-fns (constantly true)))
 
 (defn- tr-intersection [& sets]
-  (apply treaps.set/intersection (map #(apply treaps/treap-set %) sets)))
+  (if @using-treap-fns
+    (apply treaps.set/intersection (map #(apply treaps/treap-set %) sets))
+    (apply s/intersection (map #(apply treaps/treap-set %) sets))))
 
 (deftest test-treap-set-intersect
   (let [s1 #{1 2 3 4 5}
@@ -246,43 +256,48 @@
             t2 (apply treaps/treap-set (drop 10 ks))]
         (is (= (set (seq (treaps.set/intersection t1 t2))) (set (seq (treaps.set/intersection t2 t1))))))))
 
-  (testing "examples from clojure.set"
-    (is (thrown? IllegalArgumentException (tr-intersection)))
-  
-    (are [x y] (= x y)
-      ; identity
-      (tr-intersection #{}) #{}
-      (tr-intersection #{1}) #{1}
-      (tr-intersection #{1 2 3}) #{1 2 3}
+  (dotimes [n 2]
+    (testing "examples from clojure.set"
+      (is (thrown? IllegalArgumentException (tr-intersection)))
       
-      ; 2 sets, at least one is empty
-      (tr-intersection #{} #{}) #{}
-      (tr-intersection #{} #{1}) #{}
-      (tr-intersection #{} #{1 2 3}) #{}
-      (tr-intersection #{1} #{}) #{}
-      (tr-intersection #{1 2 3} #{}) #{}
+      (are [x y] (= x y)
+        ;; identity
+        (tr-intersection #{}) #{}
+        (tr-intersection #{1}) #{1}
+        (tr-intersection #{1 2 3}) #{1 2 3}
+        
+        ;; 2 sets, at least one is empty
+        (tr-intersection #{} #{}) #{}
+        (tr-intersection #{} #{1}) #{}
+        (tr-intersection #{} #{1 2 3}) #{}
+        (tr-intersection #{1} #{}) #{}
+        (tr-intersection #{1 2 3} #{}) #{}
 
-      ; 2 sets
-      (tr-intersection #{1 2} #{1 2}) #{1 2}
-      (tr-intersection #{1 2} #{3 4}) #{}
-      (tr-intersection #{1 2} #{1}) #{1}
-      (tr-intersection #{1 2} #{2}) #{2}
-      (tr-intersection #{1 2 4} #{2 3 4 5}) #{2 4}
+        ;; 2 sets
+        (tr-intersection #{1 2} #{1 2}) #{1 2}
+        (tr-intersection #{1 2} #{3 4}) #{}
+        (tr-intersection #{1 2} #{1}) #{1}
+        (tr-intersection #{1 2} #{2}) #{2}
+        (tr-intersection #{1 2 4} #{2 3 4 5}) #{2 4}
 
-      ; 3 sets, some are empty
-      (tr-intersection #{} #{} #{}) #{}
-      (tr-intersection #{1} #{} #{}) #{}
-      (tr-intersection #{1} #{1} #{}) #{}
-      (tr-intersection #{1} #{} #{1}) #{}
-      (tr-intersection #{1 2} #{2 3} #{}) #{}
+        ;; 3 sets, some are empty
+        (tr-intersection #{} #{} #{}) #{}
+        (tr-intersection #{1} #{} #{}) #{}
+        (tr-intersection #{1} #{1} #{}) #{}
+        (tr-intersection #{1} #{} #{1}) #{}
+        (tr-intersection #{1 2} #{2 3} #{}) #{}
 
-      ; 3 sets
-      (tr-intersection #{1 2} #{2 3} #{5 2}) #{2}
-      (tr-intersection #{1 2 3} #{1 3 4} #{1 3}) #{1 3}
-      (tr-intersection #{1 2 3} #{3 4 5} #{8 2 3}) #{3})))
+        ;; 3 sets
+        (tr-intersection #{1 2} #{2 3} #{5 2}) #{2}
+        (tr-intersection #{1 2 3} #{1 3 4} #{1 3}) #{1 3}
+        (tr-intersection #{1 2 3} #{3 4 5} #{8 2 3}) #{3}))
+    (swap! using-treap-fns (constantly false)))
+  (swap! using-treap-fns (constantly true)))
 
 (defn- tr-difference [& sets]
-  (apply treaps.set/difference (map #(apply treaps/treap-set %) sets)))
+  (if @using-treap-fns
+    (apply treaps.set/difference (map #(apply treaps/treap-set %) sets))
+    (apply s/difference (map #(apply treaps/treap-set %) sets))))
 
 (deftest test-treap-set-diff
   (let [s1 #{1 2 3 4 5}
@@ -312,45 +327,83 @@
         (is (= (set (take 10 ks)) (set (seq (treaps.set/difference t1 t2)))))
         (is (= (set (drop 10 ks)) (set (seq (treaps.set/difference t2 t1))))))))
 
-  (testing "examples from clojure.set"
-    (are [x y] (= x y)
-      ; identity
-      (tr-difference #{}) #{}
-      (tr-difference #{1}) #{1}
-      (tr-difference #{1 2 3}) #{1 2 3}
+  (dotimes [n 2]
+    (testing "examples from clojure.set"
+      (are [x y] (= x y)
+        ;; identity
+        (tr-difference #{}) #{}
+        (tr-difference #{1}) #{1}
+        (tr-difference #{1 2 3}) #{1 2 3}
 
-      ; 2 sets
-      (tr-difference #{1 2} #{1 2}) #{}
-      (tr-difference #{1 2} #{3 4}) #{1 2}
-      (tr-difference #{1 2} #{1}) #{2}
-      (tr-difference #{1 2} #{2}) #{1}
-      (tr-difference #{1 2 4} #{2 3 4 5}) #{1}
+        ;; 2 sets
+        (tr-difference #{1 2} #{1 2}) #{}
+        (tr-difference #{1 2} #{3 4}) #{1 2}
+        (tr-difference #{1 2} #{1}) #{2}
+        (tr-difference #{1 2} #{2}) #{1}
+        (tr-difference #{1 2 4} #{2 3 4 5}) #{1}
 
-       ; 3 sets
-      (tr-difference #{1 2} #{2 3} #{5 2}) #{1}
-      (tr-difference #{1 2 3} #{1 3 4} #{1 3}) #{2}
-      (tr-difference #{1 2 3} #{3 4 5} #{8 2 3}) #{1} )))
+        ;; 3 sets
+        (tr-difference #{1 2} #{2 3} #{5 2}) #{1}
+        (tr-difference #{1 2 3} #{1 3 4} #{1 3}) #{2}
+        (tr-difference #{1 2 3} #{3 4 5} #{8 2 3}) #{1} ))
+    (swap! using-treap-fns (constantly false)))
+  (swap! using-treap-fns (constantly true)))
+
+(defn tr-subset? [sub super]
+  (if @using-treap-fns
+    (treaps.set/subset? (apply treaps/treap-set sub) (apply treaps/treap-set super))
+    (s/subset? (apply treaps/treap-set sub) (apply treaps/treap-set super))))
 
 (deftest test-subset?
-  (are [sub super] (treaps.set/subset? (apply treaps/treap-set sub) (apply treaps/treap-set super))
-       #{} #{}
-       #{} #{1}
-       #{1} #{1}
-       #{1 2} #{1 2}
-       #{1 2} #{1 2 42}
-       #{false} #{false}
-       #{nil}   #{nil}
-       #{nil}   #{nil false}
-       #{1 2 nil} #{1 2 nil 4}
-       )
-  (are [notsub super] (not (treaps.set/subset? (apply treaps/treap-set notsub) (apply treaps/treap-set super)))
-       #{1} #{}
-       #{2} #{1}
-       #{1 3} #{1}
-       #{nil} #{false}
-       #{false} #{nil}
-       #{false nil} #{nil}
-       #{1 2 nil}   #{1 2}))
+  (dotimes [n 2]
+    (are [sub super] (tr-subset? sub super)
+      #{} #{}
+      #{} #{1}
+      #{1} #{1}
+      #{1 2} #{1 2}
+      #{1 2} #{1 2 42}
+      #{false} #{false}
+      #{nil}   #{nil}
+      #{nil}   #{nil false}
+      #{1 2 nil} #{1 2 nil 4})
+    (are [notsub super] (not (tr-subset? notsub super))
+      #{1} #{}
+      #{2} #{1}
+      #{1 3} #{1}
+      #{nil} #{false}
+      #{false} #{nil}
+      #{false nil} #{nil}
+      #{1 2 nil}   #{1 2})
+    (swap! using-treap-fns (constantly false)))
+  (swap! using-treap-fns (constantly true)))
+
+(defn tr-superset? [sub super]
+  (if @using-treap-fns
+    (treaps.set/superset? (apply treaps/treap-set sub) (apply treaps/treap-set super))
+    (s/superset? (apply treaps/treap-set sub) (apply treaps/treap-set super))))
+
+(deftest test-superset?
+  (dotimes [n 2]
+    (are [super sub] (tr-superset? super sub)
+      #{} #{}
+      #{1} #{}
+      #{1} #{1}
+      #{1 2} #{1 2}
+      #{1 2 42} #{1 2}
+      #{false}  #{false}
+      #{nil}    #{nil}
+      #{false nil} #{false}
+      #{1 2 4 nil false} #{1 2 nil})
+    (are [notsuper sub] (not (tr-superset? notsuper sub))
+      #{} #{1}
+      #{2} #{1}
+      #{1} #{1 3}
+      #{nil} #{false}
+      #{false} #{nil}
+      #{nil}   #{false nil}
+      #{nil 2 3} #{false nil 2 3})
+    (swap! using-treap-fns (constantly false)))
+  (swap! using-treap-fns (constantly true)))
 
 (deftest symmetric-difference-test
   (testing "empty on one side returns the other set's elements"
