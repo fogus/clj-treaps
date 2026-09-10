@@ -1,6 +1,7 @@
 (ns clj-treaps.test.treap-set-test
   (:require [fogus.treaps :as treaps]
             [fogus.treaps.set :as treaps.set]
+            [fogus.treaps.impl :as impl]
             [clojure.set :as s])
   (:use clojure.test)
   (:import [fogus.treaps TreapSet]))
@@ -82,7 +83,7 @@
       (is (= (-> t1 seq set) (-> t0 seq set))))))
 
 (deftest test-treap-set-empty-result-identity
-  (let [EMPTY @#'treaps/EMPTY
+  (let [EMPTY @#'impl/EMPTY_TREAP
         t1 (treaps/treap-set 1 2 3)
         t2 (treaps/treap-set 4 5 6)
         e  (treaps/treap-set)]

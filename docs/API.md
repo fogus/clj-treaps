@@ -61,19 +61,28 @@ A Clojure implementation of persistent tree + heap = treaps
 
 (->TreapSet metadata root __hc __heq)
 ```
-<p><sub><a href="https://github.com/fogus/clj-treaps/blob/main/src/fogus/treaps.clj#L59-L159">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/clj-treaps/blob/main/src/fogus/treaps.clj#L57-L157">Source</a></sub></p>
+
+## <a name="fogus.treaps/->treap-set">`->treap-set`</a><a name="fogus.treaps/->treap-set"></a>
+``` clojure
+
+(->treap-set coll)
+```
+
+Pours elements from coll into a new TreapSet.
+<p><sub><a href="https://github.com/fogus/clj-treaps/blob/main/src/fogus/treaps.clj#L173-L176">Source</a></sub></p>
 
 ## <a name="fogus.treaps/EMPTY">`EMPTY`</a><a name="fogus.treaps/EMPTY"></a>
 
 
 
-<p><sub><a href="https://github.com/fogus/clj-treaps/blob/main/src/fogus/treaps.clj#L57-L57">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/clj-treaps/blob/main/src/fogus/treaps.clj#L161-L161">Source</a></sub></p>
 
 ## <a name="fogus.treaps/TreapSet">`TreapSet`</a><a name="fogus.treaps/TreapSet"></a>
 
 
 
-<p><sub><a href="https://github.com/fogus/clj-treaps/blob/main/src/fogus/treaps.clj#L59-L159">Source</a></sub></p>
+<p><sub><a href="https://github.com/fogus/clj-treaps/blob/main/src/fogus/treaps.clj#L57-L157">Source</a></sub></p>
 
 ## <a name="fogus.treaps/treap-set">`treap-set`</a><a name="fogus.treaps/treap-set"></a>
 ``` clojure
@@ -81,10 +90,8 @@ A Clojure implementation of persistent tree + heap = treaps
 (treap-set & elems)
 ```
 
-Builds a TreapSet from elems using a random-priority policy, the
-  same independent-random-priority assumption the paper's expected
-  O(m log(n/m)) union/intersection/difference bounds depend on.
-<p><sub><a href="https://github.com/fogus/clj-treaps/blob/main/src/fogus/treaps.clj#L163-L168">Source</a></sub></p>
+Builds a TreapSet from elems.
+<p><sub><a href="https://github.com/fogus/clj-treaps/blob/main/src/fogus/treaps.clj#L163-L171">Source</a></sub></p>
 
 -----
 # <a name="fogus.treaps.set">fogus.treaps.set</a>

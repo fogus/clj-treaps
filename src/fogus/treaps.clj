@@ -54,8 +54,6 @@
 
 (set! *warn-on-reflection* true)
 
-(def EMPTY impl/EMPTY_TREAP)
-
 (deftype TreapSet [metadata root ^:unsynchronized-mutable __hc ^:unsynchronized-mutable __heq]
   clojure.lang.IObj
   (withMeta [_ m]
@@ -89,7 +87,7 @@
   (cons [this obj]
     (let [[k v] (impl/-unwrap-kv this obj)]
       (TreapSet. metadata (impl/-insert root (impl/random-priority k) k v) 0 0)))
-  (empty [_] (TreapSet. metadata EMPTY 0 0))
+  (empty [_] (TreapSet. metadata impl/EMPTY_TREAP 0 0))
   (equiv [this other]
     (cond
       (or (instance? clojure.lang.IPersistentSet other) (instance? java.util.Set other))
@@ -110,11 +108,11 @@
   (-join [_ _]
     (throw (UnsupportedOperationException. "TreapSet does not support -join")))
   (-union [_ other]
-    (TreapSet. metadata (or (impl/-union root (impl/-derive-root other)) EMPTY) 0 0))
+    (TreapSet. metadata (or (impl/-union root (impl/-derive-root other)) impl/EMPTY_TREAP) 0 0))
   (-intersect [_ other]
-    (TreapSet. metadata (or (impl/-intersect root (impl/-derive-root other)) EMPTY) 0 0))
+    (TreapSet. metadata (or (impl/-intersect root (impl/-derive-root other)) impl/EMPTY_TREAP) 0 0))
   (-diff [_ other]
-    (TreapSet. metadata (or (impl/-diff root (impl/-derive-root other)) EMPTY) 0 0))
+    (TreapSet. metadata (or (impl/-diff root (impl/-derive-root other)) impl/EMPTY_TREAP) 0 0))
 
   impl/TreapRoot
   (-derive-root [_] root)
@@ -160,9 +158,19 @@
 
 ;; Public API
 
+(def EMPTY (TreapSet. nil impl/EMPTY_TREAP 0 0))
+
 (defn treap-set
-  "Builds a TreapSet from elems using a random-priority policy, the
-  same independent-random-priority assumption the paper's expected
-  O(m log(n/m)) union/intersection/difference bounds depend on."
+  "Builds a TreapSet from elems."
   [& elems]
-  (TreapSet. nil (reduce (fn [t k] (impl/-insert t (impl/random-priority k) k k)) EMPTY elems) 0 0))
+  (TreapSet. nil
+             (reduce (fn [t k]
+                       (impl/-insert t (impl/random-priority k) k k))
+                     impl/EMPTY_TREAP
+                     elems)
+             0 0))
+
+(defn ->treap-set
+  "Pours elements from coll into a new TreapSet."
+  [coll]
+  (into EMPTY coll))
