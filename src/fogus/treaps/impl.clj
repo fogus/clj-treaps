@@ -1,4 +1,4 @@
-(ns fogus.treaps.impl
+(ns ^:no-doc fogus.treaps.impl
   "Kernel implementation of the treap described in \"Fast Set
   Operations Using Treaps\" by Guy E. Blelloch and Margaret
   Reid-Miller.")

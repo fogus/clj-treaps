@@ -7,11 +7,11 @@ Random balanced binary trees (treaps) in Clojure.
 
 ### deps.edn
 
-    me.fogus/clj-treaps {:mvn/version "0.0.???"}
+    me.fogus/clj-treaps {:mvn/version "0.0.1"}
 
 OR
 
-    io.github.fogus/clj-treaps {:git/tag "v0.0.???" :git/sha "..."}
+    io.github.fogus/clj-treaps {:git/tag "v0.0.1" :git/sha "..."}
 
 You can find the SHAs on the [Github tags page](https://github.com/fogus/clj-treaps/tags).
 
@@ -19,7 +19,7 @@ You can find the SHAs on the [Github tags page](https://github.com/fogus/clj-tre
 
 Modify your [Leiningen](http://github.com/technomancy/leiningen) dependencies to include:
 
-    :dependencies [[me.fogus/clj-treaps "0.0.???"] ...]
+    :dependencies [[me.fogus/clj-treaps "0.0.1"] ...]
 
 ### Maven
 
@@ -28,8 +28,20 @@ Add the following to your `pom.xml` file:
     <dependency>
       <groupId>me.fogus</groupId>
       <artifactId>clj-treaps</artifactId>
-      <version>0.0.???</version>
+      <version>0.0.1</version>
     </dependency>
+
+## Dev
+
+Namespaces under the wip sub-ns are works in progress and should only be used for experimentation. It is expected that these implementations will change frequently and may disappear altogether.
+
+    clj -X:dev:test
+
+To generate the current API docs run the following:
+
+    clj -Tquickdoc quickdoc '{:outfile "docs/API.md", :github/repo "https://github.com/fogus/clj-treaps", :toc false}'
+
+The above requires that you install quickdocs as a CLI tool first.
 
 ## Why I Built This
 
@@ -37,8 +49,7 @@ I chose treaps because they need no complicated balancing machinery, and I found
 
 ## References
 
-- *Fast Set Operations Using Treaps* by Blelloch and Reid-Miller
-
+- *Fast Set Operations Using Treaps* by Blelloch and Reid-Miller ([overview](https://www.cs.cmu.edu/~scandal/treaps.html))
 
 ## License
 
