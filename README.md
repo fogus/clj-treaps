@@ -3,6 +3,9 @@ clj-treaps
 
 Random balanced binary trees (treaps) in Clojure.
 
+- [API docs](https://github.com/fogus/clj-treaps/blob/main/docs/API.md) 
+- [Tickets](https://github.com/fogus/clj-treaps/issues)
+
 ## Including
 
 ### deps.edn

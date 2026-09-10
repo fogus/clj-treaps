@@ -93,9 +93,9 @@ Builds a TreapSet from elems.
 ## <a name="fogus.treaps.set/difference">`difference`</a><a name="fogus.treaps.set/difference"></a>
 ``` clojure
 
-(difference s)
-(difference s1 s2)
-(difference s1 s2 & more)
+(difference t)
+(difference t1 t2)
+(difference t1 t2 & more)
 ```
 
 Return a treap set that is the first set without elements of the remaining treap sets
@@ -104,9 +104,9 @@ Return a treap set that is the first set without elements of the remaining treap
 ## <a name="fogus.treaps.set/intersection">`intersection`</a><a name="fogus.treaps.set/intersection"></a>
 ``` clojure
 
-(intersection s)
-(intersection s1 s2)
-(intersection s1 s2 & more)
+(intersection t)
+(intersection t1 t2)
+(intersection t1 t2 & more)
 ```
 
 Return a treap set that is the intersection of the input treap sets.
@@ -143,9 +143,9 @@ Elements in t1 or t2 but not both.
 ``` clojure
 
 (union)
-(union s)
-(union s1 s2)
-(union s1 s2 & more)
+(union t)
+(union t1 t2)
+(union t1 t2 & more)
 ```
 
 Return a treap set that is the union of the input treap sets.
