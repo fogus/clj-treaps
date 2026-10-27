@@ -4,7 +4,7 @@
 
 (def lib 'me.fogus/clj-treaps)
 (def description "Random balanced binary trees (treaps) in Clojure.")
-(def version "0.0.1") ;; unreleased
+(def version "0.0.2") ;; unreleased
 (def class-dir "target/classes")
 (def jar-file (format "target/%s.jar" (name lib)))
 

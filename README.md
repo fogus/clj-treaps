@@ -10,11 +10,11 @@ Random balanced binary trees (treaps) in Clojure.
 
 ### deps.edn
 
-    me.fogus/clj-treaps {:mvn/version "0.0.1"}
+    me.fogus/clj-treaps {:mvn/version "0.0.2"}
 
 OR
 
-    io.github.fogus/clj-treaps {:git/tag "v0.0.1" :git/sha "..."}
+    io.github.fogus/clj-treaps {:git/tag "v0.0.2" :git/sha "..."}
 
 You can find the SHAs on the [Github tags page](https://github.com/fogus/clj-treaps/tags).
 
@@ -22,7 +22,7 @@ You can find the SHAs on the [Github tags page](https://github.com/fogus/clj-tre
 
 Modify your [Leiningen](http://github.com/technomancy/leiningen) dependencies to include:
 
-    :dependencies [[me.fogus/clj-treaps "0.0.1"] ...]
+    :dependencies [[me.fogus/clj-treaps "0.0.2"] ...]
 
 ### Maven
 
@@ -31,7 +31,7 @@ Add the following to your `pom.xml` file:
     <dependency>
       <groupId>me.fogus</groupId>
       <artifactId>clj-treaps</artifactId>
-      <version>0.0.1</version>
+      <version>0.0.2</version>
     </dependency>
 
 ## Dev

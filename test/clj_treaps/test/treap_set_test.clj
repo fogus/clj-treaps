@@ -405,6 +405,44 @@
     (swap! using-treap-fns (constantly false)))
   (swap! using-treap-fns (constantly true)))
 
+(deftest test-disjoint?
+  (let [empty-ts (treaps/treap-set)
+        a (treaps/treap-set 1 2 3)
+        b (treaps/treap-set 4 5 6)
+        c (treaps/treap-set 3 4 5)
+        nil-and-false (treaps/treap-set nil false)
+        includes-nil (treaps/treap-set nil 1)
+        includes-false (treaps/treap-set false 2)]
+    (are [t1 t2 expected] (= expected (treaps.set/disjoint? t1 t2))
+      empty-ts empty-ts true
+      empty-ts a true
+      a empty-ts true
+      a b true
+      b a true
+      a c false
+      c a false
+      nil-and-false includes-nil false
+      nil-and-false includes-false false)))
+
+(deftest test-intersects?
+  (let [empty-ts (treaps/treap-set)
+        a (treaps/treap-set 1 2 3)
+        b (treaps/treap-set 4 5 6)
+        c (treaps/treap-set 3 4 5)
+        nil-and-false (treaps/treap-set nil false)
+        includes-nil (treaps/treap-set nil 1)
+        includes-false (treaps/treap-set false 2)]
+    (are [t1 t2 expected] (= expected (treaps.set/intersects? t1 t2))
+      empty-ts empty-ts false
+      empty-ts a false
+      a empty-ts false
+      a b false
+      b a false
+      a c true
+      c a true
+      nil-and-false includes-nil true
+      nil-and-false includes-false true)))
+
 (deftest symmetric-difference-test
   (testing "empty on one side returns the other set's elements"
     (is (= #{1 2 3}
@@ -471,3 +509,17 @@
       (is (= #{1 2 3 4} (set t-conj)))
       (is (= {:tag :x} (meta t-into)))
       (is (= #{1 2 3 4} (set t-into))))))
+
+(deftest treap-set-operation-metadata-test
+  (let [t1 (with-meta (treaps/treap-set 1 2 3 4) {:source :first})
+        t2 (with-meta (treaps/treap-set 3 4 5 6) {:source :second})
+        t3 (with-meta (treaps/treap-set 4 7) {:source :third})
+        expected-meta {:source :first}]
+    (testing "metadata from the first operand is retained"
+      (is (= expected-meta (meta (treaps.set/union t1 t2))))
+      (is (= expected-meta (meta (treaps.set/union t1 t2 t3))))
+      (is (= expected-meta (meta (treaps.set/intersection t1 t2))))
+      (is (= expected-meta (meta (treaps.set/intersection t1 t2 t3))))
+      (is (= expected-meta (meta (treaps.set/difference t1 t2))))
+      (is (= expected-meta (meta (treaps.set/difference t1 t2 t3))))
+      (is (= expected-meta (meta (treaps.set/symmetric-difference t1 t2)))))))

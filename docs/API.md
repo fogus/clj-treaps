@@ -101,6 +101,15 @@ Builds a TreapSet from elems.
 Return a treap set that is the first set without elements of the remaining treap sets
 <p><sub><a href="https://github.com/fogus/clj-treaps/blob/main/src/fogus/treaps/set.clj#L26-L30">Source</a></sub></p>
 
+## <a name="fogus.treaps.set/disjoint?">`disjoint?`</a><a name="fogus.treaps.set/disjoint?"></a>
+``` clojure
+
+(disjoint? t1 t2)
+```
+
+Whether t1 and t2 have no elements in common.
+<p><sub><a href="https://github.com/fogus/clj-treaps/blob/main/src/fogus/treaps/set.clj#L57-L60">Source</a></sub></p>
+
 ## <a name="fogus.treaps.set/intersection">`intersection`</a><a name="fogus.treaps.set/intersection"></a>
 ``` clojure
 
@@ -111,6 +120,15 @@ Return a treap set that is the first set without elements of the remaining treap
 
 Return a treap set that is the intersection of the input treap sets.
 <p><sub><a href="https://github.com/fogus/clj-treaps/blob/main/src/fogus/treaps/set.clj#L20-L24">Source</a></sub></p>
+
+## <a name="fogus.treaps.set/intersects?">`intersects?`</a><a name="fogus.treaps.set/intersects?"></a>
+``` clojure
+
+(intersects? t1 t2)
+```
+
+Whether t1 and t2 have any elements in common.
+<p><sub><a href="https://github.com/fogus/clj-treaps/blob/main/src/fogus/treaps/set.clj#L52-L55">Source</a></sub></p>
 
 ## <a name="fogus.treaps.set/subset?">`subset?`</a><a name="fogus.treaps.set/subset?"></a>
 ``` clojure
@@ -127,7 +145,7 @@ Is t1 a subset of t2?
 (superset? t1 t2)
 ```
 
-Is set1 a superset of set2?
+Is t1 a superset of t2?
 <p><sub><a href="https://github.com/fogus/clj-treaps/blob/main/src/fogus/treaps/set.clj#L37-L40">Source</a></sub></p>
 
 ## <a name="fogus.treaps.set/symmetric-difference">`symmetric-difference`</a><a name="fogus.treaps.set/symmetric-difference"></a>

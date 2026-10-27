@@ -48,3 +48,13 @@
      (empty? t2) t1
      (identical? t1 t2) (impl/-diff t1 t1)
      :else (impl/-union (impl/-diff t1 t2) (impl/-diff t2 t1)))))
+
+(defn intersects?
+  "Whether t1 and t2 have any elements in common."
+  [t1 t2]
+  (boolean (some #(contains? t2 %) t1)))
+
+(defn disjoint?
+  "Whether t1 and t2 have no elements in common."
+  [t1 t2]
+  (not (intersects? t1 t2)))
